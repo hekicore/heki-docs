@@ -44,3 +44,7 @@
 * heki-anytls 教程
     * [xboard 对接 anytls](anytls/xboard-anytls.md)
     * [v2board 对接 anytls](anytls/v2board-anytls.md)
+* heki-naive 教程
+    * [xboard 对接 naive](naive/xboard-naive.md)
+* heki-mieru 教程
+    * [xboard 对接 mieru](mieru/xboard-mieru.md)

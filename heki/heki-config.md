@@ -80,7 +80,7 @@ panel_key=xxxx
 | `node_id`   | 无             | 节点 id，可配置多个，以逗号分隔: `1,2,3`，每个节点必须是相同的后端类型                 |
 | `heki_key`  | 无             | 授权码                                                       |
 
-!> heki 会自动从面板的 sort 字段检测协议类型，无需手动配置 `server_type`。如需手动指定，可设置 `server_type`，可选: `v2ray`,`trojan`,`ss`,`ssr`,`vless`,`hysteria`,`anytls`
+!> heki 会自动从面板的 sort 字段检测协议类型，无需手动配置 `server_type`。如需手动指定，可设置 `server_type`，可选: `v2ray`,`trojan`,`ss`,`ssr`,`vless`,`hysteria`,`anytls`,`naive`,`mieru`
 
 # 对接配置（必填）
 
@@ -143,6 +143,22 @@ panel_key=xxxx
 | `anytls_sni`      | 无   | AnyTLS SNI 域名   |
 | `anytls_cert_file`| 无   | AnyTLS 证书文件路径   |
 | `anytls_key_file` | 无   | AnyTLS 密钥文件路径   |
+
+# naive 配置（可选）
+
+| 参数名                | 默认值    | 说明                                    |
+|--------------------|--------|---------------------------------------|
+| `naive_enable_tls` | `true` | 是否启用 TLS，Naive 协议默认需要 TLS              |
+| `naive_cert_file`  | 无      | Naive TLS 证书文件路径                       |
+| `naive_key_file`   | 无      | Naive TLS 密钥文件路径                       |
+| `naive_server_name`| 无      | Naive TLS SNI 域名                       |
+
+# mieru 配置（可选）
+
+| 参数名                  | 默认值                | 说明                                                    |
+|----------------------|--------------------|---------------------------------------------------------|
+| `mieru_transport`    | `TCP`              | Mieru 传输协议，可选: `TCP`、`UDP`                              |
+| `mieru_multiplexing` | `MULTIPLEXING_LOW` | Mieru 多路复用级别                                            |
 
 # tls 配置（可选）
 

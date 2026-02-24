@@ -1,6 +1,6 @@
 # 功能介绍
 
-> heki 后端同时支持 vmess、trojan、ss、ssr、vless、hysteria、anytls 协议，支持多个面板对接，功能丰富
+> heki 后端同时支持 vmess、trojan、ss、ssr、vless、hysteria、anytls、naive、mieru 协议，支持多个面板对接，功能丰富
 
 ## heki 后端特点
 
@@ -45,7 +45,7 @@
 
 | 功能 | heki | soga |
 |------|------|------|
-| 支持协议 | VMess/VLESS/Trojan/SS/SSR/Hysteria2/AnyTLS | VMess/VLESS/Trojan/SS/SSR/Hysteria2/AnyTLS |
+| 支持协议 | VMess/VLESS/Trojan/SS/SSR/Hysteria2/AnyTLS/Naive/Mieru | VMess/VLESS/Trojan/SS/SSR/Hysteria2/AnyTLS |
 | 面板支持 | SSPanel/V2Board/XBoard | SSPanel/V2Board/XBoard/WHMCS/ProxyPanel/PPanel |
 | UDP FullCone | ✅ 全协议 | ✅ 全协议 |
 | 动态限速 | ✅ | ✅ |
@@ -89,12 +89,12 @@
 
 ## 支持的面板
 
-| 面板            | v2ray | trojan | ss        | ssr            | vless | hysteria | anytls |
-|---------------|-------|--------|-----------|----------------|-------|----------|--------|
-| xiaov2board   | ✅     | ✅      | ✅(密码单端口)  | ❌              | ✅     | ✅        | ✅      |
-| xboard        | ✅     | ✅      | ✅(密码单端口)  | ❌              | ✅     | ✅        | ✅      |
-| sspanel-uim   | ✅     | ✅      | ✅(密码单端口)  | ✅(混淆+协议单端、多端口) | ❌     | ❌        | ❌      |
-| v2board       | ✅     | ✅      | ✅(密码单端口)  | ❌              | ❌     | ❌        | ❌      |
+| 面板            | v2ray | trojan | ss        | ssr            | vless | hysteria | anytls | naive | mieru |
+|---------------|-------|--------|-----------|----------------|-------|----------|--------|-------|-------|
+| xiaov2board   | ✅     | ✅      | ✅(密码单端口)  | ❌              | ✅     | ✅        | ✅      | ❌     | ❌     |
+| xboard        | ✅     | ✅      | ✅(密码单端口)  | ❌              | ✅     | ✅        | ✅      | ✅     | ✅     |
+| sspanel-uim   | ✅     | ✅      | ✅(密码单端口)  | ✅(混淆+协议单端、多端口) | ❌     | ❌        | ❌      | ❌     | ❌     |
+| v2board       | ✅     | ✅      | ✅(密码单端口)  | ❌              | ❌     | ❌        | ❌      | ❌     | ❌     |
 
 ## v2ray 后端类型支持的协议
 
@@ -162,3 +162,13 @@
 |----------------------|------|
 | anytls v1+v2         | ✅    |
 | anytls paddingScheme | ✅    |
+
+## naive 后端类型支持的协议
+| 协议    | 支持情况 |
+|-------|------|
+| naive | ✅ HTTP CONNECT + Basic Auth over TLS |
+
+## mieru 后端类型支持的协议
+| 协议    | 支持情况 |
+|-------|------|
+| mieru | ✅ TCP / UDP（XChaCha20-Poly1305 加密）|

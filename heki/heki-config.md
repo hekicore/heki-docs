@@ -72,6 +72,70 @@ panel_key=xxxx
 
 ---
 
+# 配置优先级
+
+heki 采用三层配置，逐层覆盖：
+
+```
+面板 API（最高优先级）→ 协议、端口、传输层等由面板控制，本地无法覆盖
+节点独立配置 [USER] 区 → 每个节点可单独调整的参数，重启后保留
+heki.conf（最低优先级）→ 所有参数的全局默认值
+```
+
+## 主配置文件 heki.conf
+
+路径：`/etc/heki/heki.conf`
+
+所有节点共享的全局配置，包括面板对接信息、授权码、以及各参数的默认值。
+
+## 节点独立配置
+
+路径：`/etc/heki/nodes/node_{id}.conf`
+
+每个节点启动后会自动生成独立的配置文件，文件分为两个区域：
+
+- `[AUTO]` 区：每次启动自动更新，展示面板下发的协议、端口等信息，仅供参考，请勿手动修改
+- `[USER]` 区：用户可自由修改的参数，修改后重启 heki 即可生效，重启不会被覆盖
+
+### 可在 [USER] 区修改的参数
+
+| 参数名                    | 说明                     |
+|------------------------|------------------------|
+| `proxy_protocol`       | 是否启用 proxy protocol    |
+| `force_proxy_protocol` | 是否强制 proxy protocol    |
+| `check_interval`       | 节点同步间隔，单位秒             |
+| `submit_interval`      | 提交数据间隔，单位秒             |
+
+### 多节点独立配置示例
+
+主配置 `heki.conf` 中配置了 3 个节点：
+```
+node_id=250,251,252
+proxy_protocol=false
+check_interval=60
+```
+
+在节点独立配置中为不同节点设置不同参数：
+
+`/etc/heki/nodes/node_250.conf` 的 [USER] 区：
+```
+# ---- [USER] 用户自定义（修改这里，重启保留）----
+proxy_protocol=true
+force_proxy_protocol=false
+check_interval=30
+submit_interval=60
+```
+
+`/etc/heki/nodes/node_251.conf` 的 [USER] 区保持默认不修改。
+
+效果：
+- 节点 250：`proxy_protocol=true`，`check_interval=30`（使用节点独立配置）
+- 节点 251：`proxy_protocol=false`，`check_interval=60`（回退到 heki.conf 默认值）
+
+> 如果删除 [USER] 区中的某一行，该参数会回退到 heki.conf 中的全局默认值
+
+---
+
 # 基础配置（必填）
 
 | 参数名         | 默认值           | 说明                                                        |

@@ -1,0 +1,812 @@
+openapi: 3.1.0
+info:
+  title: heki-v1 WebAPI
+  version: "1.0.0"
+  summary: Public versioned WebAPI for integrating custom control planes with heki.
+  description: |
+    `heki-v1` is the public, versioned panel API consumed by heki when `type=heki-v1`.
+
+    Base URL is the configured `panel_url`. heki appends `/api/v1/nodes/{node_id}` and related paths.
+  contact:
+    name: Heki
+    url: https://github.com/hekicore/heki
+  license:
+    name: Repository License
+    url: https://github.com/hekicore/heki
+servers:
+  - url: https://{host}/heki
+    variables:
+      host:
+        default: api.your-domain.tld
+        description: Production API host for your heki-v1 control plane.
+security:
+  - bearerAuth: []
+tags:
+  - name: Nodes
+    description: Node configuration retrieval
+  - name: Users
+    description: User synchronization
+  - name: Reports
+    description: Traffic, alive IP, and node status reporting
+paths:
+  /api/v1/nodes/{node_id}:
+    get:
+      operationId: getNode
+      summary: Get node configuration
+      tags: [Nodes]
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+        - $ref: '#/components/parameters/AcceptHeader'
+        - $ref: '#/components/parameters/UserAgent'
+        - $ref: '#/components/parameters/HekiNodeId'
+        - $ref: '#/components/parameters/IfNoneMatch'
+        - $ref: '#/components/parameters/RequestedProtocol'
+      responses:
+        '200':
+          description: Node configuration
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeEnvelope'
+        '304':
+          description: Not modified
+        '401':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+  /api/v1/nodes/{node_id}/users:
+    get:
+      operationId: getUsers
+      summary: Get node users
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+        - $ref: '#/components/parameters/AcceptHeader'
+        - $ref: '#/components/parameters/UserAgent'
+        - $ref: '#/components/parameters/HekiNodeId'
+        - $ref: '#/components/parameters/IfNoneMatch'
+        - $ref: '#/components/parameters/RequestedProtocol'
+      responses:
+        '200':
+          description: User list
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersEnvelope'
+        '304':
+          description: Not modified
+        '401':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+  /api/v1/nodes/{node_id}/traffic:
+    post:
+      operationId: reportTraffic
+      summary: Report user traffic
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+        - $ref: '#/components/parameters/AcceptHeader'
+        - $ref: '#/components/parameters/UserAgent'
+        - $ref: '#/components/parameters/HekiNodeId'
+        - $ref: '#/components/parameters/RequestedProtocol'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrafficReportRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ack'
+        '204':
+          description: Accepted
+        '401':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+  /api/v1/nodes/{node_id}/alive-ips:
+    post:
+      operationId: reportAliveIPs
+      summary: Report user online IPs
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+        - $ref: '#/components/parameters/AcceptHeader'
+        - $ref: '#/components/parameters/UserAgent'
+        - $ref: '#/components/parameters/HekiNodeId'
+        - $ref: '#/components/parameters/RequestedProtocol'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AliveIPReportRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ack'
+        '204':
+          description: Accepted
+        '401':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+  /api/v1/nodes/{node_id}/status:
+    post:
+      operationId: reportNodeStatus
+      summary: Report node status
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+        - $ref: '#/components/parameters/AcceptHeader'
+        - $ref: '#/components/parameters/UserAgent'
+        - $ref: '#/components/parameters/HekiNodeId'
+        - $ref: '#/components/parameters/RequestedProtocol'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeStatusReport'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ack'
+        '204':
+          description: Accepted
+        '401':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+  parameters:
+    NodeId:
+      name: node_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    AcceptHeader:
+      name: Accept
+      in: header
+      required: false
+      description: |
+        heki currently sends `application/json, application/problem+json`
+        to indicate support for both success and RFC 7807 error responses.
+      schema:
+        type: string
+      example: application/json, application/problem+json
+    UserAgent:
+      name: User-Agent
+      in: header
+      required: false
+      description: heki currently sends a fixed user-agent string `heki`.
+      schema:
+        type: string
+      example: heki
+    HekiNodeId:
+      name: X-Heki-Node-Id
+      in: header
+      required: false
+      description: Node identifier mirrored in a request header for middleware, auditing, or tracing.
+      schema:
+        type: integer
+        minimum: 1
+    IfNoneMatch:
+      name: If-None-Match
+      in: header
+      required: false
+      schema:
+        type: string
+    RequestedProtocol:
+      name: X-Heki-Requested-Protocol
+      in: header
+      required: false
+      schema:
+        $ref: '#/components/schemas/Protocol'
+  headers:
+    ETag:
+      description: Entity tag for conditional GET.
+      schema:
+        type: string
+  responses:
+    Ack:
+      description: Successful acknowledgement with an optional empty or implementation-defined JSON object.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AckResponse'
+    Problem:
+      description: RFC 7807 problem response
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    NodeEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Node'
+    UsersEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    AckResponse:
+      type: object
+      additionalProperties: true
+      description: |
+        Optional acknowledgement body for POST success responses.
+        Implementations may return `{}` or a lightweight confirmation object.
+    Node:
+      type: object
+      required: [protocol, listen]
+      properties:
+        protocol:
+          $ref: '#/components/schemas/Protocol'
+        listen:
+          $ref: '#/components/schemas/ListenConfig'
+        limits:
+          $ref: '#/components/schemas/NodeLimits'
+        scheduler:
+          $ref: '#/components/schemas/SchedulerConfig'
+        transport:
+          $ref: '#/components/schemas/TransportConfig'
+        security:
+          $ref: '#/components/schemas/SecurityConfig'
+        protocol_settings:
+          description: |
+            Protocol-specific configuration object. Use the schema variant matching `protocol`.
+
+            For SS plugin-based nodes, `plugin` / `plugin_opts` preserve the original plugin
+            semantics, while `obfs`, `obfs_host`, `obfs_path`, `v2ray_plugin_*`, and
+            `shadow_tls_*` are recommended normalized helper fields for clearer control-plane
+            integrations.
+          anyOf:
+            - $ref: '#/components/schemas/VMessProtocolSettings'
+            - $ref: '#/components/schemas/VLESSProtocolSettings'
+            - $ref: '#/components/schemas/SSProtocolSettings'
+            - $ref: '#/components/schemas/SSRProtocolSettings'
+            - $ref: '#/components/schemas/TrojanProtocolSettings'
+            - $ref: '#/components/schemas/HysteriaProtocolSettings'
+            - $ref: '#/components/schemas/TUICProtocolSettings'
+            - $ref: '#/components/schemas/AnyTLSProtocolSettings'
+            - $ref: '#/components/schemas/NaiveProtocolSettings'
+            - $ref: '#/components/schemas/MieruProtocolSettings'
+        runtime:
+          $ref: '#/components/schemas/RuntimeConfig'
+    Protocol:
+      type: string
+      enum:
+        - vmess
+        - vless
+        - ss
+        - ssr
+        - trojan
+        - hysteria
+        - tuic
+        - anytls
+        - naive
+        - mieru
+    ListenConfig:
+      type: object
+      required: [port]
+      properties:
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        ip:
+          type: string
+    NodeLimits:
+      type: object
+      properties:
+        speed_mbps:
+          type: number
+          minimum: 0
+        traffic_rate:
+          type: number
+          exclusiveMinimum: 0
+    SchedulerConfig:
+      type: object
+      properties:
+        pull_interval_seconds:
+          type: integer
+          minimum: 0
+        push_interval_seconds:
+          type: integer
+          minimum: 0
+        node_report_min_traffic_kb:
+          type: integer
+          minimum: 0
+        device_online_min_traffic_kb:
+          type: integer
+          minimum: 0
+    TransportConfig:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [tcp, ws, httpupgrade, h2, grpc, xhttp, splithttp]
+        path:
+          type: string
+        host:
+          type: string
+        service_name:
+          type: string
+    SecurityConfig:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [none, tls, reality]
+        server_name:
+          type: string
+        allow_insecure:
+          type: boolean
+        reject_unknown_sni:
+          type: boolean
+        certificate:
+          $ref: '#/components/schemas/CertificateConfig'
+        reality:
+          $ref: '#/components/schemas/RealityConfig'
+    CertificateConfig:
+      type: object
+      properties:
+        mode:
+          type: string
+          description: http, dns, self, content, or another implementation-defined mode.
+        domain:
+          type: string
+        cert_file:
+          type: string
+        key_file:
+          type: string
+        acme_server:
+          type: string
+          description: ACME server alias such as `letsencrypt` / `zerossl`, or a custom ACME directory URL.
+        provider:
+          type: string
+        dns_env:
+          type: object
+          additionalProperties:
+            type: string
+        public_key_pem:
+          type: string
+        private_key_pem:
+          type: string
+    RealityConfig:
+      type: object
+      properties:
+        private_key:
+          type: string
+        server_name:
+          type: string
+        server_names:
+          type: array
+          items:
+            type: string
+        short_id:
+          type: string
+        short_ids:
+          type: array
+          items:
+            type: string
+        dest:
+          type: string
+    VMessProtocolSettings:
+      type: object
+      description: VMess currently has no additional standard required fields in `heki-v1`.
+      additionalProperties: true
+    VLESSProtocolSettings:
+      type: object
+      description: |
+        VLESS protocol settings. Empty `flow` and `flow: none` both mean no VLESS flow.
+        Only `xtls-rprx-vision` enables Vision and must still satisfy the TCP + TLS/Reality constraints.
+      additionalProperties: true
+      properties:
+        flow:
+          type: string
+          description: Empty string or `none` means no VLESS flow; `xtls-rprx-vision` enables Vision.
+        encryption:
+          type: string
+        decryption:
+          type: string
+    SSProtocolSettings:
+      type: object
+      required: [cipher]
+      additionalProperties: true
+      description: |
+        Shadowsocks protocol settings.
+
+        When using plugin-based SS nodes, it is recommended to return both:
+        1. original plugin fields (`plugin`, `plugin_opts`)
+        2. normalized helper fields (`obfs`, `obfs_host`, `obfs_path`, `v2ray_plugin_*`,
+           `shadow_tls_*`)
+
+        This makes third-party control-plane integrations clearer and more compatible with
+        existing XBoard-style field conventions.
+      properties:
+        cipher:
+          type: string
+        server_key:
+          type: string
+        obfs:
+          type: string
+          description: |
+            Recommended normalized runtime value, for example:
+            `simple_obfs_http`, `simple_obfs_tls`, `v2ray_plugin`, `shadow_tls`,
+            `restls`, `kcptun`, or `gost`.
+        obfs_host:
+          type: string
+        obfs_path:
+          type: string
+        plugin:
+          type: string
+          description: Original SS plugin name, such as `simple-obfs`, `v2ray-plugin`, `shadow-tls`, `restls`, `kcptun`, or `gost`.
+        plugin_opts:
+          type: string
+          description: Original plugin option string in `key=value;key=value` form.
+        v2ray_plugin_mode:
+          type: string
+        v2ray_plugin_tls:
+          type: boolean
+        shadow_tls_password:
+          type: string
+        shadow_tls_version:
+          type: integer
+          minimum: 1
+        shadow_tls_server:
+          type: string
+          description: Explicit handshake server address such as `cloudflare.com:443`.
+      example:
+        cipher: aes-128-gcm
+        plugin: shadow-tls
+        plugin_opts: host=cloudflare.com;password=shadow-secret;version=3
+        obfs: shadow_tls
+        obfs_host: cloudflare.com
+        shadow_tls_password: shadow-secret
+        shadow_tls_version: 3
+        shadow_tls_server: cloudflare.com:443
+    SSRProtocolSettings:
+      type: object
+      required: [method, password, protocol, obfs]
+      additionalProperties: true
+      properties:
+        method:
+          type: string
+        password:
+          type: string
+        protocol:
+          type: string
+        protocol_param:
+          type: string
+        obfs:
+          type: string
+        obfs_param:
+          type: string
+        single_port_type:
+          type: string
+    TrojanProtocolSettings:
+      type: object
+      description: Trojan currently has no additional standard required fields in `heki-v1`.
+      additionalProperties: true
+    HysteriaProtocolSettings:
+      type: object
+      description: |
+        Hysteria2 protocol settings. Salamander obfuscation is enabled only when
+        `obfs: salamander` and `obfs_password` are both present. Use `obfs: none`
+        to explicitly disable obfuscation.
+      additionalProperties: true
+      properties:
+        up_mbps:
+          type: number
+          minimum: 0
+        down_mbps:
+          type: number
+          minimum: 0
+        obfs:
+          type: string
+          description: Use `salamander` to enable Salamander or `none` to explicitly disable it.
+        obfs_password:
+          type: string
+    TUICProtocolSettings:
+      type: object
+      additionalProperties: true
+      properties:
+        congestion_control:
+          type: string
+        alpn:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        auth_timeout:
+          oneOf:
+            - type: integer
+              minimum: 0
+            - type: string
+        heartbeat:
+          oneOf:
+            - type: integer
+              minimum: 0
+            - type: string
+        zero_rtt_handshake:
+          type: boolean
+    AnyTLSProtocolSettings:
+      type: object
+      description: |
+        AnyTLS protocol settings. ECH requires a real server keyset such as
+        `ech_server_keys`, `ech_key`, or an enabled `tls.ech.key`; metadata fields
+        like `ech_enable` or `ech_server_name` alone do not enable ECH.
+      additionalProperties: true
+      properties:
+        padding_scheme:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        ech_server_keys:
+          type: string
+          description: Base64 ECH keyset or PEM-wrapped ECH KEYS.
+        ech_key:
+          type: string
+          description: Alias of `ech_server_keys`.
+    NaiveProtocolSettings:
+      type: object
+      description: Naive currently has no additional standard required fields in `heki-v1`.
+      additionalProperties: true
+    MieruProtocolSettings:
+      type: object
+      additionalProperties: true
+      properties:
+        transport:
+          type: string
+        multiplexing:
+          type: string
+        traffic_pattern:
+          type: string
+    RuntimeConfig:
+      type: object
+      properties:
+        routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeRoute'
+        dns_rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeDNSRule'
+        custom_outbounds:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        custom_routes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    RuntimeRoute:
+      type: object
+      properties:
+        id:
+          type: integer
+        match:
+          type: array
+          items:
+            type: string
+        action:
+          type: string
+        action_value:
+          description: Depends on action.
+    RuntimeDNSRule:
+      type: object
+      required: [match, servers]
+      properties:
+        match:
+          type: array
+          items:
+            type: string
+        servers:
+          type: array
+          items:
+            type: string
+        strategy:
+          type: string
+    User:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        uuid:
+          type: string
+        password:
+          type: string
+        method:
+          type: string
+        port:
+          type: integer
+          minimum: 0
+        is_multi_user:
+          type: integer
+          minimum: 0
+        protocol:
+          type: string
+        protocol_param:
+          type: string
+        obfs:
+          type: string
+        obfs_param:
+          type: string
+        speed_limit_mbps:
+          type: number
+          minimum: 0
+        device_limit:
+          type: integer
+          minimum: 0
+        upload_bytes:
+          type: integer
+          minimum: 0
+        download_bytes:
+          type: integer
+          minimum: 0
+        transfer_enable_bytes:
+          type: integer
+          minimum: 0
+        expired_at_unix:
+          type: integer
+          minimum: 0
+        banned:
+          type: boolean
+        enabled:
+          type: boolean
+        disabled:
+          type: boolean
+    TrafficReportRequest:
+      type: object
+      required: [records]
+      properties:
+        records:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/TrafficRecord'
+    TrafficRecord:
+      type: object
+      required: [user_id, u, d]
+      properties:
+        user_id:
+          type: integer
+          minimum: 1
+        u:
+          type: integer
+          minimum: 0
+        d:
+          type: integer
+          minimum: 0
+    AliveIPReportRequest:
+      type: object
+      required: [records]
+      properties:
+        records:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AliveIPRecord'
+    AliveIPRecord:
+      type: object
+      required: [user_id, ips]
+      properties:
+        user_id:
+          type: integer
+          minimum: 1
+        ips:
+          type: array
+          minItems: 1
+          items:
+            type: string
+    NodeStatusReport:
+      type: object
+      required: [reported_at, cpu_percent, uptime_seconds, load, memory, swap, disk]
+      properties:
+        reported_at:
+          type: string
+          format: date-time
+        cpu_percent:
+          type: number
+          minimum: 0
+        uptime_seconds:
+          type: integer
+          minimum: 0
+        load:
+          $ref: '#/components/schemas/LoadAverage'
+        memory:
+          $ref: '#/components/schemas/ByteUsage'
+        swap:
+          $ref: '#/components/schemas/ByteUsage'
+        disk:
+          $ref: '#/components/schemas/ByteUsage'
+    LoadAverage:
+      type: object
+      required: [raw, one, five, fifteen]
+      properties:
+        raw:
+          type: string
+        one:
+          type: number
+          minimum: 0
+        five:
+          type: number
+          minimum: 0
+        fifteen:
+          type: number
+          minimum: 0
+    ByteUsage:
+      type: object
+      required: [total_bytes, used_bytes]
+      properties:
+        total_bytes:
+          type: integer
+          minimum: 0
+        used_bytes:
+          type: integer
+          minimum: 0
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri

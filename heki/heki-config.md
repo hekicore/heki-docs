@@ -81,9 +81,9 @@ heki config type=ppanel server_type=vless node_id=1 panel_url=https://xxx.com/ p
 heki config type=heki-v1 server_type=vless node_id=1 panel_url=https://api.example.com/heki panel_key=your-api-key
 ```
 
-详细协议说明见：[heki-v1 WebAPI 开发文档](../panel/heki-v1-webapi.md)
+详细协议说明见：[heki-v1 WebAPI 开发文档](panel/heki-v1-webapi.md)
 
-仓库内置参考后端和真实联调说明见：[heki-v1 参考后端与联调](../panel/heki-v1-example-server.md)
+仓库内置参考后端和真实联调说明见：[heki-v1 参考后端与联调](panel/heki-v1-example-server.md)
 
 ### ② 手动编辑配置文件
 直接编辑`/etc/heki/heki.conf`文件，每行一个配置，以下为示例:
@@ -249,6 +249,7 @@ pprof_addr=off
 | `access_log_clickhouse_flush_interval` | `5` | 未满批次时的刷新间隔，秒 |
 | `access_log_clickhouse_request_timeout` | `5` | 单次建表/写入请求超时，秒 |
 | `access_log_clickhouse_auto_create` | `true` | 自动执行 `CREATE TABLE IF NOT EXISTS`；关闭后账号只需 INSERT 权限 |
+| `access_log_clickhouse_gzip` | `false` | gzip 压缩该节点的日志上传请求体；后台批次压缩，详见 [ClickHouse 访问日志](other/access-log-clickhouse.md)（v1.2.9 同版本重发新增） |
 | `tuic_initial_stream_window` | `2` | TUIC 单 stream 初始接收窗口，单位 MB，仅 `server_type=tuic` 生效 |
 | `tuic_max_stream_window` | `6` | TUIC 单 stream 最大接收窗口，单位 MB，仅 `server_type=tuic` 生效 |
 | `tuic_initial_conn_window` | `3` | TUIC 单连接初始接收窗口，单位 MB，仅 `server_type=tuic` 生效 |
@@ -260,7 +261,7 @@ pprof_addr=off
 >
 > `cert_mode=dns` 时，可在 `[USER]` 区继续写入 `DNS_*` 形式的环境变量，例如 `DNS_CF_Email`、`DNS_CF_Key`。运行时会自动转换为 acme.sh 需要的真实环境变量。
 >
-> 目前 `default_dns`、`dns_strategy`、`user_conn_limit`、`user_speed_limit`、`user_tcp_limit`、`forbidden_ports`、`sniff_redirect`、`log_level` 等参数仍需在主配置 `heki.conf` 中设置，写入 `[USER]` 区不会生效。
+> 目前 `default_dns`、`dns_strategy`、`dns_rules_url`、`dns_rules_update_interval`、`forbidden_bit_torrent`、`user_conn_limit`、`user_speed_limit`、`user_tcp_limit`、`forbidden_ports`、`sniff_redirect`、`log_level` 等参数仍需在主配置 `heki.conf` 中设置，写入 `[USER]` 区不会生效。
 >
 > 若节点配置文件已存在 `[USER]` 区，heki 会保留用户原有内容；当后续版本新增可在 `[USER]` 区生效的参数时，会自动以`注释模板`的形式补充缺失项，方便发现新能力，但不会覆盖你已有的设置。
 
@@ -493,10 +494,21 @@ heki 支持在同一实例中运行不同协议类型的节点。节点实际协
 | `dns_cache_time` | `10` | DNS 缓存时间，单位分钟 |
 | `dns_strategy` | `ipv4_first` | 解析策略：`ipv4_first`/`ipv4_only`/`ipv6_first`/`ipv6_only` |
 | `dns_rules_file` | 同配置目录 `dns.yml` | 本地 DNS 规则文件路径；CLI `-d` 优先，其次使用这里的配置 |
+| `dns_rules_url` | 空 | 远程 `dns.yml` 的 HTTP(S) 原文地址；配置后启动时拉取，成功后使用远程规则替代本地规则 |
+| `dns_rules_update_interval` | `60` | 远程 DNS 规则刷新间隔，单位秒，必须为正整数；仅配置 `dns_rules_url` 时生效 |
 
-> `dns_rules_file` 指向的规则文件优先级高于 `default_dns`；只有命中规则文件条目的域名才会使用条目内 DNS，其他域名仍走 `default_dns` 或系统 DNS。若面板下发了运行时 DNS 规则，面板规则会排在本地 `dns.yml` 前面。
+> DNS 规则优先级为：面板运行时 DNS > 当前 DNS 规则源 > `default_dns` > 系统 DNS。当前规则源默认是本地 `dns.yml`，远程规则成功加载后切换为远程内容；只有命中规则的域名才会使用条目内 DNS。
 >
 > `dns_rules_file` 的实际优先级是：CLI `-d` > `heki.conf` 中的 `dns_rules_file` > `heki.conf` 同目录默认 `dns.yml`。
+
+远程统一管理示例（2026-10-31 的 `v1.2.9` 同版本重发新增，旧版 1.2.9 也需重新下载安装包或拉取镜像并重建容器）：
+
+```ini
+dns_rules_url=https://rules.example.com/dns.yml
+dns_rules_update_interval=60
+```
+
+首次设置后重启 Heki；以后修改远程文件即可自动生效。拉取或校验失败时保留当前规则；启动时远程不可用则使用本地 `dns_rules_file`。远程成功后不会合并本地规则，也不会覆盖本地文件，面板 DNS 规则仍然优先。完整 YAML、Docker 及故障行为见 [远程 DNS 规则](other/dns-config.md#远程统一管理)。
 
 ### 3.3.3 Proxy Protocol
 
@@ -1047,7 +1059,7 @@ cert_mode=self
 | `check_interval` | `60` | 节点同步间隔，秒 |
 | `submit_interval` | `60` | 提交数据间隔，秒 |
 | `force_close_ssl` | `false` | 关闭 heki TLS，由外部 nginx 等处理 |
-| `forbidden_bit_torrent` | `true` | 禁止 BT 下载 |
+| `forbidden_bit_torrent` | `true` | 拦截可识别的 BT 流量，不能保证封锁加密 BT；覆盖范围与排查见 [BT 过滤](other/bt-filter.md) |
 | `auto_update` | `false` | 每天自动检查更新稳定版 |
 | `log_level` | `info` | 日志等级：`debug`/`info`/`warn`/`error` |
 | `log_file_dir` | `/etc/heki/` | 日志目录，空或 `false` 不保存文件 |
@@ -1066,9 +1078,10 @@ cert_mode=self
 | `access_log_clickhouse_flush_interval` | `5` | 批量刷新间隔，秒 |
 | `access_log_clickhouse_request_timeout` | `5` | ClickHouse HTTP 请求超时，秒 |
 | `access_log_clickhouse_auto_create` | `true` | 是否自动创建访问日志表 |
+| `access_log_clickhouse_gzip` | `false` | gzip 压缩日志上传请求体，可在节点 `[USER]` 区覆盖；详见 [ClickHouse 访问日志](other/access-log-clickhouse.md)（v1.2.9 同版本重发新增） |
 | `auto_out_ip` | `false` | 源进源出；按入口本地 IP 绑定出口，多 IP 服务器建议配合 `listen=all` 或明确 IP 列表 |
 | `domain_sniff` | `tls,http,quic` | 域名探测协议；仅当客户端目标本身是 IP 时才尝试从首包探测，空=不探测 |
-| `sniff_redirect` | `false` | 探测到域名后重新解析 IP，解析优先级为 `面板运行时 DNS > dns.yml > default_dns > 系统 DNS` |
+| `sniff_redirect` | `false` | 探测到域名后重新解析 IP，优先级为面板运行时 DNS > 当前 DNS 规则源（本地文件或已加载的远程规则）> `default_dns` > 系统 DNS |
 | `forbidden_ports` | 无 | 禁止代理端口，如 `25,465,1-100` |
 | `ban_private_ip` | `false` | 禁止代理内网 IP |
 | `detect_packet` | `false` | 审计规则检测明文数据包 |

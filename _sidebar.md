@@ -72,6 +72,7 @@
   * [动态限速](other/dy-limit.md)
   * [域名访问审计](other/domain-audit.md)
   * [ClickHouse 访问日志](other/access-log-clickhouse.md)
+  * [BT 过滤](other/bt-filter.md)
   * [审计规则](other/block-list-config.md)
   * [白名单规则](other/white-list.md)
 

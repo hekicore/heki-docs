@@ -22,6 +22,8 @@ systemctl enable docker
 
 > 当前稳定版：`v1.2.9`；发布日期：`2026-10-31`。更新时拉取 `hekicore/heki:latest`，或固定 `hekicore/heki:1.2.9`。
 
+2026-10-31 同版本重发新增 [远程 DNS 定时更新](other/dns-config.md)、[BT 过滤增强](other/bt-filter.md)、[ClickHouse gzip](other/access-log-clickhouse.md)，并修复 TUIC 首包缓存并发释放。即使已经使用 1.2.9，也需执行 `docker compose pull && docker compose up -d` 获取新镜像；仅重启旧容器不会更新程序。
+
 ---
 
 ## 配置方式
@@ -67,7 +69,7 @@ environment:
   access_log_clickhouse_auto_create: "true"
 ```
 
-数据库需要提前创建。自动建表账号需要 `CREATE TABLE` 和 `INSERT` 权限；预先建表后可关闭 `access_log_clickhouse_auto_create`，仅保留 `INSERT` 权限。完整表结构、TTL、查询和故障行为见 [ClickHouse 访问日志](../other/access-log-clickhouse.md)。
+数据库需要提前创建。自动建表账号需要 `CREATE TABLE` 和 `INSERT` 权限；预先建表后可关闭 `access_log_clickhouse_auto_create`，仅保留 `INSERT` 权限。完整表结构、TTL、查询和故障行为见 [ClickHouse 访问日志](other/access-log-clickhouse.md)。
 
 补充说明：
 - `Mieru TCP` 开启 `proxy_protocol=true` 后，现在会在真正读取协议首包时再解析 Proxy Protocol，避免前置中转连接建立后迟迟不发头部时卡住后续连接；这类现象通常会表现为偶发握手超时、测速长时间 pending

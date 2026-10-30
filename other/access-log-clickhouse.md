@@ -31,6 +31,51 @@ access_log_clickhouse_password=
 | `access_log_clickhouse_flush_interval` | `5` | 未满批次时的刷新间隔，秒 |
 | `access_log_clickhouse_request_timeout` | `5` | 单次 HTTP 请求超时，秒 |
 | `access_log_clickhouse_auto_create` | `true` | 是否自动创建表 |
+| `access_log_clickhouse_gzip` | `false` | gzip 压缩 INSERT 请求体，减少日志上传流量（v1.2.9 同版本重发新增） |
+
+## gzip 上传压缩
+
+> 此开关随 2026-10-31 的 v1.2.9 同版本重发提供；旧版 1.2.9 用户也需重新下载安装包或拉取镜像并重建容器。
+
+节点与 ClickHouse 之间跨机器或跨地区传输日志时，可在主配置 `heki.conf` 中开启：
+
+```ini
+access_log_enable=true
+access_log_clickhouse_url=https://logs.example.com:8443
+access_log_clickhouse_username=heki_writer
+access_log_clickhouse_password=替换为实际密码
+access_log_clickhouse_gzip=true
+```
+
+其他参数沿用上表默认值。已有 ClickHouse 配置只需增加 `access_log_clickhouse_gzip=true`；多节点也可在对应节点配置文件的 `[USER]` 区单独设置。修改后重启 Heki 生效。默认 `false` 保持原来的上传方式，改回 `false` 即可关闭压缩。
+
+例如全局已启用 gzip，但节点 12 使用的日志网关暂不支持压缩，可在 `/etc/heki/nodes/node_12.conf` 的现有 `[USER]` 区添加：
+
+```ini
+[USER]
+access_log_clickhouse_gzip=false
+```
+
+未设置节点覆盖时继承全局配置；只写 gzip 开关不会自动开启访问日志，仍需 `access_log_enable=true`。
+
+Docker Compose 可在现有服务的 `environment` 中添加同名小写环境变量：
+
+```yaml
+environment:
+  access_log_enable: "true"
+  access_log_clickhouse_url: "https://logs.example.com:8443"
+  access_log_clickhouse_username: "heki_writer"
+  access_log_clickhouse_password: "替换为实际密码"
+  access_log_clickhouse_gzip: "true"
+```
+
+环境变量覆盖主配置文件，同一节点的 `[USER]` 配置再覆盖继承值。修改 Compose 后执行 `docker compose up -d` 重建相关容器；仅执行 `docker restart` 不会更新环境变量。容器使用的镜像必须包含这个新开关。
+
+压缩在异步日志批次线程中执行，使用 gzip 低压缩级别并复用压缩器，不在代理转发路径中逐包压缩。会增加少量后台 CPU 开销，通常可明显减少 JSON 日志上传量；实际压缩率取决于域名、IP 等字段的重复程度。
+
+Heki 使用标准 `Content-Encoding: gzip` 请求头，ClickHouse HTTP 接口可直接解压读取；如果前面有反向代理或网关，需要允许并正确转发该请求头及压缩请求体。出现解压或写入错误时先检查网关，也可以关闭此开关排查。失败批次仍按原有队列与重试机制处理，不会自动降级为未压缩上传。
+
+此开关只减少 Heki 到 ClickHouse 的上传带宽，不改变表结构或 ClickHouse 磁盘压缩设置，也不提供加密；公网传输仍应使用 HTTPS。
 
 ## 表结构
 

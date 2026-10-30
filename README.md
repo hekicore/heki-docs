@@ -10,6 +10,8 @@
 
 > 当前稳定版：`v1.2.9`；Docker 推荐标签：`hekicore/heki:latest`；发布日期：`2026-10-31`
 
+2026-10-31 同版本重发：新增 [远程 DNS 定时更新](other/dns-config.md)、[BT 过滤增强](other/bt-filter.md) 和 [ClickHouse gzip](other/access-log-clickhouse.md)，修复 TUIC 首包缓存并发释放。旧版 1.2.9 用户也需重新执行 `heki update 1.2.9`，或拉取镜像并重建容器。
+
 ## 🎉 免费版
 
 不配置 `heki_key` 即可使用免费版，最多 88 个有效用户，全部协议和功能，永久免费。

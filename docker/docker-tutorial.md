@@ -22,7 +22,7 @@ systemctl enable docker
 
 > 当前稳定版：`v1.2.9`；发布日期：`2026-10-31`。更新时拉取 `hekicore/heki:latest`，或固定 `hekicore/heki:1.2.9`。
 
-2026-10-31 同版本重发新增 [远程 DNS 定时更新](other/dns-config.md)、[BT 过滤增强](other/bt-filter.md)、[ClickHouse gzip](other/access-log-clickhouse.md)，并修复 TUIC 首包缓存并发释放。即使已经使用 1.2.9，也需执行 `docker compose pull && docker compose up -d` 获取新镜像；仅重启旧容器不会更新程序。
+2026-10-31 再次同版本重发新增 [Hy2 网站伪装](hysteria/masquerade.md)，同时包含前次的 [远程 DNS 定时更新](other/dns-config.md)、[BT 过滤增强](other/bt-filter.md)、[ClickHouse gzip](other/access-log-clickhouse.md) 和 TUIC 首包缓存并发修复。即使已经使用 1.2.9，也需执行 `docker compose pull && docker compose up -d` 获取新镜像；仅重启旧容器不会更新程序。
 
 ---
 

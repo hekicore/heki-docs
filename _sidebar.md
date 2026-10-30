@@ -36,6 +36,7 @@
     * [V2Board](anytls/v2board-anytls.md)
     * [PPanel](anytls/ppanel-anytls.md)
   * [Hysteria2](#)
+    * [网站伪装 Masquerade](hysteria/masquerade.md)
     * [XBoard](hysteria/xboard-hysteria.md)
     * [V2Board](hysteria/v2board-hysteria.md)
     * [PPanel](hysteria/ppanel-hysteria.md)

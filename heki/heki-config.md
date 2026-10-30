@@ -250,6 +250,7 @@ pprof_addr=off
 | `access_log_clickhouse_request_timeout` | `5` | 单次建表/写入请求超时，秒 |
 | `access_log_clickhouse_auto_create` | `true` | 自动执行 `CREATE TABLE IF NOT EXISTS`；关闭后账号只需 INSERT 权限 |
 | `access_log_clickhouse_gzip` | `false` | gzip 压缩该节点的日志上传请求体；后台批次压缩，详见 [ClickHouse 访问日志](other/access-log-clickhouse.md)（v1.2.9 同版本重发新增） |
+| `hysteria_masquerade` | 空 | Hy2 HTTP/3 网站伪装，单行 JSON；节点整体覆盖全局值，`{}` 关闭，见 [Masquerade](hysteria/masquerade.md)（v1.2.9 再次重发新增） |
 | `tuic_initial_stream_window` | `2` | TUIC 单 stream 初始接收窗口，单位 MB，仅 `server_type=tuic` 生效 |
 | `tuic_max_stream_window` | `6` | TUIC 单 stream 最大接收窗口，单位 MB，仅 `server_type=tuic` 生效 |
 | `tuic_initial_conn_window` | `3` | TUIC 单连接初始接收窗口，单位 MB，仅 `server_type=tuic` 生效 |
@@ -758,6 +759,7 @@ Vision 支持通过 Mux/XUDP 转发 UDP；“底层 TCP”不等于“只能代�
 | `hysteria_key_file`       | 无       | TLS 密钥文件路径                                             |
 | `hysteria_allow_insecure` | `false` | 客户端兼容字段，服务端忽略；自签证书应在客户端配置信任或证书 pin，见 Hy2 文档 |
 | `hysteria_disable_udp`    | `false` | 是否禁用 UDP 转发                                            |
+| `hysteria_masquerade` | 空 | HTTP/3 网站伪装：`proxy/file/string`，支持环境变量及节点 `[USER]`；配置实例见 [Masquerade](hysteria/masquerade.md)（v1.2.9 再次重发新增） |
 
 > `hysteria_up_mbps / hysteria_down_mbps` 是 Hysteria2 自身的带宽参数；另外通用的 `user_speed_limit`、`node_speed_limit` 也会对 Hysteria2 生效。
 

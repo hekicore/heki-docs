@@ -10,30 +10,6 @@
 
 > 当前稳定版：`v1.2.9`；Docker 推荐标签：`hekicore/heki:latest`；发布日期：`2026-10-31`
 
-## v1.2.9 更新摘要
-
-- 修复 VLESS + Reality/TLS + TCP + Vision 的 UDP（Mux/XUDP）转发
-- XiaoV2Board 支持 Hy2 自签证书下发和 SHA-256 pin 校验；PPanel 自签模式上报实际证书指纹，并兼容新版响应字段
-- Mieru 升级至 3.39.0，新增三项可选 TCP 回收参数，默认全部关闭。可分别清理未建立会话的连接、会话结束后的空连接，或持续双向无数据的连接，详见 Mieru 配置文档
-- 升级 Hysteria 2.13.0、Xray 26.10.29、sing 0.9.6、sing-quic 0.7.1、Reality、Shadowsocks 等依赖并保留本地补丁；Naive 补齐官方 Padding 协商
-- SSPanel-UIM、XBoard、XiaoV2Board、PPanel 的 11 个选定真实联调案例通过，不代表穷举所有组合
-
-升级前请注意：XHTTP 下载端的 `allowInsecure=true` 必须迁移为可信证书或 pin；PPanel 自签 Hy2 默认订阅模板遗漏 pin，需要按文档迁移。
-
-[完整发布说明](https://github.com/hekicore/heki/releases/tag/v1.2.9) · [PPanel Hy2 迁移](hysteria/ppanel-hysteria.md) · [Mieru 参数](mieru/xboard-mieru.md)
-
-## v1.2.8 更新摘要（历史版本）
-
-- 修复 Mieru 无握手及会话结束后的空 TCP 长期保留问题；保留约 6 分 30 秒复用宽限，仍有逻辑会话的连接不会被空闲回收
-- 修复 Mieru 帧在维护超时边界到达时可能被误截断的问题；协议格式、加密和 nonce 规则保持不变
-- 修复 AnyTLS、Trojan、VLESS、VMess（含 Mux）、SS/SS2022、SSR、Mieru、TUIC、Naive 长连接结束后才记账的问题；转发中持续累计有效载荷，按配置周期上报面板
-- 保留用户移除前尚未采集的流量，避免最后一批用量丢失；正常用户同步保持连接
-- 补齐 SS/SS2022 UDP 用户会话登记与踢线清理，修复用户恢复后同一 UDP 端点首包丢失
-- 修复 VMess none/zero 原始流下行格式，以及 Mux 请求头误读地址导致 XUDP 握手失败的问题
-- 全仓库测试、Mieru 定向 race 与真实回收测试，以及 TCP/UDP/UDP Associate 容器联调通过
-
-流量上报、面板入账和用户同步仍有延迟；保留连续两次失效同步后踢线的宽限策略，不提供字节级即时额度截断。
-
 ## 🎉 免费版
 
 不配置 `heki_key` 即可使用免费版，最多 88 个有效用户，全部协议和功能，永久免费。

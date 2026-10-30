@@ -553,9 +553,11 @@ vless_h2_host=reality.example.com
 
 reality_private_key=YOUR_PRIVATE_KEY
 reality_dest=www.microsoft.com:443
-reality_server_name=reality.example.com
+reality_server_name=www.microsoft.com
 reality_short_id=0123456789abcdef
 ```
+
+Reality 的 `server_name` 应是目标握手站点实际支持的 SNI；上例对应 `www.microsoft.com:443`。XHTTP 的 Host 是传输层 HTTP 字段，可以与 Reality SNI 不同，但客户端的对应配置必须一致。私钥占位符需替换为真实生成的密钥。
 
 ```ini
 # Trojan + TLS

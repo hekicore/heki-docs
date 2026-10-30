@@ -16,11 +16,11 @@
 
 ```ini
 # Mieru TCP
-transport=TCP
+mieru_transport=TCP
 proxy_protocol=true
 
 # Mieru UDP
-transport=UDP
+mieru_transport=UDP
 udp_proxy_protocol=true
 ```
 
@@ -43,6 +43,8 @@ node_id=1
 ```
 
 参考: [heki 详细配置项](heki/heki-config.md)
+
+面板的 `transport` / `network` 是面板 JSON 字段；本地键为 `mieru_transport`。面板明确下发 transport、traffic_pattern 或 user_hint_is_mandatory 时优先使用面板值，不要假定本地能强制覆盖。双节点和 Docker 示例见 [复杂配置实例](heki/config-examples.md)。
 
 ## Mieru TCP 连接回收配置
 

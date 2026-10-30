@@ -18,7 +18,7 @@
 
 ## 一、准备 Redis
 
-> 只需在任意一台服务器安装一个 redis 即可，需开启公网访问，并设置密码
+> 多个节点需要能访问同一 Redis。可以使用内网、专网或隧道，无需强制暴露到公网；监听地址按自己的网络设置，并限制为节点可访问。
 
 | 系统 | 安装命令 | 配置文件 |
 |---|---|---|
@@ -28,10 +28,12 @@
 写入以下核心配置：
 
 ```conf
-bind 0.0.0.0
+bind 127.0.0.1 10.0.0.10
 port 12345
 requirepass your-password
 ```
+
+`10.0.0.10` 是示例 Redis 服务器内网地址，需替换为本机真实地址。若使用云 Redis，直接使用服务商提供的连接地址、密码和 TLS 要求，无需复制上面的服务端配置。
 
 启动并设置开机自启：
 
@@ -73,6 +75,27 @@ user_conn_limit=2
 > `user_conn_limit` 只限制不同 IP/设备数量，不是 TCP 连接数；TCP 连接数请使用 `user_tcp_limit`。`ssr_cid_limit` 是旧版 SSR 单端口参数，现在通常不用配置；SSR 的 IP/设备数限制也按 `device_limit` / `user_conn_limit` 生效。
 
 ## 三、推荐参数
+
+### 两个节点共用设备数限制的例子
+
+同一面板的两个 Heki 实例使用同一 Redis 地址和 DB，在各自主配置中写入：
+
+```ini
+redis_enable=true
+redis_addr=10.0.0.10:12345
+redis_password=REPLACE_WITH_REDIS_PASSWORD
+redis_db=0
+redis_timeout_ms=300
+conn_limit_expiry=60
+user_conn_limit=2
+user_tcp_limit=0
+```
+
+面板未下发用户设备数限制时，`user_conn_limit=2` 作为本地兜底；面板给出的有效设备限制优先。这里计的是不同真实 IP，多个设备共用同一出口 IP 可能只算一个，无法识别物理设备。`user_tcp_limit=0` 表示不额外限制 TCP 连接数，不影响上面的 IP 限制。
+
+不同面板或不应共享额度的客户使用不同 `redis_db`。Redis 不可达时会退回各节点本地限制，因此异常期间不能保证跨节点总数仍严格为 2。中转场景先按协议配置真实 IP 传递，否则统计到的可能全是中转机 IP。
+
+### 参数选择
 
 | 场景 | 推荐配置 |
 |---|---|

@@ -3,6 +3,7 @@
 * [快速开始](#)
   * [免费版说明](heki/free-edition.md)
   * [安装与配置](heki/heki-config.md)
+  * [复杂配置实例](heki/config-examples.md)
   * [Docker 部署](docker/docker-tutorial.md)
 
 * [协议对接](#)
@@ -57,6 +58,7 @@
   * [多实例部署](other/heki-multi-instance.md)
 
 * [网络与安全](#)
+  * [XHTTP 与证书 pin](other/xhttp-config.md)
   * [DNS 规则配置](other/dns-config.md)
   * [域名嗅探](other/domain-sniff.md)
   * [TLS 加密套件](other/tls-cipher-suites.md)

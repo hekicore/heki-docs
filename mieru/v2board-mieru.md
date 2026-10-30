@@ -15,6 +15,8 @@
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
+双节点独立超时与 Docker Compose 完整示例见 [复杂配置实例](heki/config-examples.md)。面板明确下发 `traffic_pattern` / `user_hint_is_mandatory` 时优先使用面板值；它们的优先级不同于三项 TCP 回收超时。
+
 Mieru TCP 中转真实 IP 示例：
 
 ```ini

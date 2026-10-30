@@ -178,13 +178,19 @@ pprof_addr=off
 
 # 2. 配置优先级
 
-heki 采用三层配置，逐层覆盖：
+配置先从 `heki.conf` 读取，再应用同名环境变量；每个节点随后读取支持的 `[USER]` 覆盖项，最后接入面板字段。**最终优先级与字段有关**，不能把“面板总是覆盖本地”套用到所有参数。
 
-```
-面板 API（最高优先级）→ 协议、端口、传输层等由面板控制，本地无法覆盖
-节点独立配置 [USER] 区 → 每个节点可单独调整的参数，重启后保留
-heki.conf（最低优先级）→ 所有参数的全局默认值
-```
+| 配置类别 | 实际行为 |
+|---|---|
+| 协议类型、节点端口、VMess/VLESS/Trojan/AnyTLS 的传输类型 | 以面板实际下发值为准；修改客户端订阅也要同步面板 |
+| 面板 `pull_interval` / `push_interval` | 有效正数会覆盖本地 `check_interval` / `submit_interval`，包括节点覆盖值 |
+| Mieru 三项 TCP 回收超时 | 节点 `[USER]` > 主配置环境变量 > `heki.conf` > 默认关闭 |
+| Mieru `transport`、`traffic_pattern`、`user_hint_is_mandatory` | 面板下发有效对应字段时会覆盖本地值；面板未下发时才保留本地值 |
+| 成对配置的本地手动证书 | 优先于面板下发的 PEM 证书内容；客户端必须信任最终使用的证书 |
+| AnyTLS `padding_scheme` / ECH keyset | 本地已填写时保留本地值，空值再从面板补全 |
+| 其他参数 | 按各参数说明处理；不能因为主配置支持某键，就直接放进 `[USER]` |
+
+完整操作示例见 [复杂配置实例](heki/config-examples.md)。
 
 ## 2.1 主配置文件 heki.conf
 
@@ -194,12 +200,14 @@ heki.conf（最低优先级）→ 所有参数的全局默认值
 
 ## 2.2 节点独立配置
 
-路径：`/etc/heki/nodes/node_{id}.conf`
+默认路径：`/etc/heki/nodes/node_{id}.conf`。使用 `-c` 指定其他配置文件时，节点文件位于该配置文件同目录的 `nodes/` 下。
 
 每个节点启动后会自动生成独立的配置文件，文件分为两个区域：
 
 - `[AUTO]` 区：每次启动自动更新，展示面板下发的协议、端口等信息，仅供参考，请勿手动修改
 - `[USER]` 区：支持少量节点级覆盖参数，修改后重启 heki 即可生效，重启不会被覆盖
+
+这里的 `[USER]` 是文件里的完整注释标记 `# ---- [USER] 用户自定义（修改这里，重启保留）----`。请在自动生成文件的这行下面填写参数，不要只新增一个裸 `[USER]` 标题。注释单独占一行，例如先写 `# 握手等待时间`，下一行写 `mieru_handshake_timeout=30s`；不要在值后追加行尾注释。节点区的值不需要引号。
 
 ### 2.2.1 可在 [USER] 区修改的参数
 
@@ -445,6 +453,10 @@ heki 支持在同一实例中运行不同协议类型的节点。节点实际协
 | `panel_key` | 无 | webapi 通信密钥（兼容 `webapi_key`） |
 | `xboard_api_version` | `2` | xboard API 版本，`1` 或 `2` |
 
+`webapi_url` / `webapi_key` 是对应 `panel_url` / `panel_key` 的旧别名，优先使用新名称。`soga_key` 仅为旧配置迁移保留的兜底值，不建议新配置使用；面板通信密钥和 Heki 授权码应分别填写。
+
+以下历史名称虽然能被环境变量过滤器识别，但当前版本没有对应的数据库直连或 WHMCS 运行实现，不应作为可用功能配置：`api`、`db_host`、`db_port`、`db_name`、`db_user`、`db_password`、`db_max_idle_time`、`db_max_idle_conn`、`db_max_conn`、`whmcs_port`、`whmcs_rate`、`whmcs_net`、`whmcs_tls`、`whmcs_alter_id`、`whmcs_ws_path`、`whmcs_method`、`whmcs_password`、`whmcs_protocol`、`whmcs_obfs`。当前面板对接使用 HTTP API。
+
 ## 3.3 网络与 DNS
 
 ### 3.3.1 网络配置
@@ -497,6 +509,17 @@ heki 支持在同一实例中运行不同协议类型的节点。节点实际协
 | `force_proxy_protocol` | `false` | 强制 proxy protocol，开启后必须中转，无法直连 |
 
 ## 3.4 协议配置
+
+下面的传输参数填写在主配置 `heki.conf` 或同名环境变量中，不属于节点 `[USER]` 的通用覆盖项。面板模式下优先在面板配置对应协议，主配置用于面板未提供时的补充；本地改值不会自动修改客户端订阅。
+
+| 协议 | 传输键（默认 `tcp`） | WS / HTTP Upgrade 路径与 Host（默认空） | H2 / XHTTP 路径与 Host（默认空） | gRPC 服务名（默认空） |
+|---|---|---|---|---|
+| VMess | `vmess_transport` | `vmess_ws_path`、`vmess_ws_host` | `vmess_h2_path`、`vmess_h2_host` | `vmess_grpc_service_name` |
+| VLESS | `vless_transport` | `vless_ws_path`、`vless_ws_host` | `vless_h2_path`、`vless_h2_host` | `vless_grpc_service_name` |
+| Trojan | `trojan_transport` | `trojan_ws_path`、`trojan_ws_host` | `trojan_h2_path`、`trojan_h2_host` | `trojan_grpc_service_name` |
+| AnyTLS | `anytls_transport` | `anytls_ws_path`、`anytls_ws_host` | `anytls_h2_path`、`anytls_h2_host` | `anytls_grpc_service_name` |
+
+可选传输为 `tcp`、`ws`、`httpupgrade`、`h2`、`grpc`、`xhttp` / `splithttp`。兼容别名：`websocket` → `ws`，`http` / `http2` / `h2c` → `h2`，`gun` → `grpc`。HTTP Upgrade 使用 WS 那一列参数，XHTTP 使用 H2 那一列参数；路径、Host、gRPC 服务名需要与客户端和前置代理一致。不要把通用 `transport=` 当成这些协议在 `heki.conf` 中的配置键。
 
 ### 3.4.1 xhttp / SplitHTTP
 
@@ -561,10 +584,15 @@ anytls_key_file=/etc/ssl/private/privkey.pem
 - `splithttp` 不能与 `mptcp=true` 同开
 - 如果前面有 nginx / caddy 做 TLS 卸载，才考虑 `force_close_ssl=true`；否则保持默认 `false`
 
+面板 `network_settings.mode` / `extra` 并不是同名的 `heki.conf` 参数。下载分离、证书 pin 迁移和客户端配套要求见 [XHTTP 配置与证书验证](other/xhttp-config.md)。
+
 ### 3.4.2 V2Ray / VMess
 
 | 参数名 | 默认值 | 说明 |
 |--------|-------|------|
+| `vmess_enable_tls` | `false` | 本地 TLS 开关；面板下发安全类型时按面板配置处理 |
+| `vmess_cert_file` | 无 | VMess 专用证书路径；也可使用通用 `cert_file` / `key_file` |
+| `vmess_key_file` | 无 | VMess 专用私钥路径，需与证书成对 |
 | `v2ray_reduce_memory` | `false` | VMess Legacy MD5 降低内存占用；启用后客户端时间误差建议控制在 `±15s` 内 |
 | `v2ray_fallback_addr` | 无 | 回落地址，需同时设 `tls_alpn=http/1.1` |
 | `v2ray_fallback_port` | 无 | 回落端口 |
@@ -589,6 +617,15 @@ anytls_key_file=/etc/ssl/private/privkey.pem
 
 | 参数名 | 默认值 | 说明 |
 |--------|-------|------|
+| `ss_method` | 无 | SS 加密算法；本地未填时从面板补全，必须与客户端一致 |
+| `ss_obfs` | 无 | 内置混淆类型，如 `simple_obfs_http`、`simple_obfs_tls`、`shadow_tls`；通常由面板插件设置映射 |
+| `ss_plugin` | 无 | 插件名称，如 `v2ray-plugin`、`gost`、`kcptun`；具体范围见 SS 面板文档 |
+| `ss_plugin_opts` | 无 | 分号分隔的插件选项，如 `mode=websocket;host=ss.example.com;path=/ss;tls` |
+| `ss_v2ray_plugin_mode` | 无 | v2ray-plugin 传输模式补充；未指定时使用 WebSocket，优先采用 plugin_opts 中的 mode |
+| `ss_v2ray_plugin_tls` | `false` | 本地 v2ray-plugin TLS 开关；插件选项或 TLS 模式名称也可启用 TLS |
+| `ss_shadow_tls_version` | `0` | 本地未指定版本；内置默认使用 v3，面板明确下发的版本优先，建议与客户端显式对齐 |
+| `ss_shadow_tls_password` | 无 | Shadow-TLS 独立密码；v2/v3 必需，不是 SS 用户密码 |
+| `ss_shadow_tls_server` | 无 | Shadow-TLS 握手服务器，如 `www.microsoft.com:443`；未填时可从 obfs host 推导 |
 | `ss_decrypt_concurrency` | `8` | AEAD 密钥遍历并发限制，防止用户量大时 CPU 爆满 |
 | `ss_invalid_access_enable` | `false` | 是否启用错误密码攻击优化 |
 | `ss_invalid_access_count` | `30` | 错误次数 |
@@ -606,6 +643,20 @@ anytls_key_file=/etc/ssl/private/privkey.pem
 > `strict` 模式下客户端 path 和 host 必须与服务端一致，`relaxed` 不检查
 
 ### 3.4.5 ShadowsocksR (SSR)
+
+以下为本地基础参数，面板可能补全或覆盖对应值。单端口用户凭据仍由面板用户列表管理，不能仅凭下面几项创建用户。
+
+| 参数名 | 默认值 | 说明 |
+|---|---|---|
+| `ssr_method` | 无 | SSR 加密算法，必须与面板及客户端一致 |
+| `ssr_protocol` | 无 | SSR 协议，例如 `auth_aes128_sha1`、`auth_chain_a` |
+| `ssr_protocol_param` | 无 | 协议参数；具体格式由协议和面板单端口模式决定 |
+| `ssr_obfs` | 无 | 混淆，例如 `plain`、`http_simple`、`tls1.2_ticket_auth` |
+| `ssr_obfs_param` | 无 | 对应混淆参数 |
+| `ssr_password` | 无 | 承载端口密码，不等同于每个用户的密码 |
+| `ssr_single_port_type` | `protocol` | 单端口类型：`protocol` 或 `obfs`，按面板节点模式选择 |
+
+可用组合和面板示例见 [PPanel SSR](ssr/ppanel-ssr.md)、[SSPanel 协议单端口](ssr/sspanel-ssr-single-port.md)。
 
 #### SSR 混淆单端口
 
@@ -631,7 +682,7 @@ anytls_key_file=/etc/ssl/private/privkey.pem
 | `anytls_ech_server_keys` | 无 | AnyTLS 服务端 ECH keyset，base64 编码；启用后要求 TLS 1.3 |
 | `anytls_fallback_addr` | 无 | 回落地址，认证失败时将连接转发到此地址（防探测/防主动检测） |
 | `anytls_fallback_port` | `0` | 回落端口，需与 `anytls_fallback_addr` 配合使用 |
-| `anytls_padding_scheme` | 无 | 自定义 padding scheme（base64 编码），留空使用默认。一般无需修改 |
+| `anytls_padding_scheme` | 无 | 自定义 padding scheme，支持规则文本、JSON 数组/对象及 Base64；配置文件推荐单行 Base64，留空使用默认。一般无需修改 |
 | - | | |
 | `anytls_invalid_access_enable` | `false` | 是否启用防暴力破解（认证失败 IP 自动封禁） |
 | `anytls_invalid_access_count` | `30` | 触发封禁的失败次数 |
@@ -646,7 +697,19 @@ anytls_key_file=/etc/ssl/private/privkey.pem
 
 ### 3.4.7 VLESS Reality
 
-!> Reality 参数通常由面板自动下发，无需手动配置。仅在需要本地覆盖时使用
+!> VLESS / Reality 参数通常由面板下发，本地字段用于补充；不要假定本地值能覆盖面板明确返回的 flow、TLS 类型或 Reality 密钥。
+
+| 参数名 | 默认值 | 说明 |
+|---|---|---|
+| `vless_flow` | 空 | 空或 `none` 表示不启用 Vision；`xtls-rprx-vision` 要求 TCP + TLS/Reality，不能配 WS、gRPC 或 XHTTP |
+| `vless_encryption` | 空 | 本地兼容字段，仅接受空或 `none`；不是启用新版 VLESS Encryption 的入口 |
+| `vless_enc` | 空 | `vless_encryption` 的旧别名，两个同时出现时优先使用前者 |
+| `vless_decryption` | 空 | 服务端 VLESS Encryption 配置；空或 `none` 关闭，支持 `mlkem768x25519plus` 格式；不可与 fallback 同时使用 |
+| `vless_enable_tls` | `false` | 本地普通 TLS 开关；Reality 使用其自身握手，面板安全类型优先 |
+| `vless_cert_file` | 无 | VLESS 普通 TLS 证书路径 |
+| `vless_key_file` | 无 | 对应私钥路径，需成对配置 |
+
+Vision 支持通过 Mux/XUDP 转发 UDP；“底层 TCP”不等于“只能代理 TCP”。客户端须支持并正确启用对应封装，不能把带 Vision flow 的普通 UDP 命令当作 XUDP。完整面板示例及服务端 decryption 入口见 [XBoard VLESS](vless/xboard-vless.md)。
 
 | 参数名                    | 默认值 | 说明                                                    |
 |------------------------|-----|-------------------------------------------------------|
@@ -672,14 +735,14 @@ anytls_key_file=/etc/ssl/private/privkey.pem
 
 | 参数名                       | 默认值     | 说明                                                    |
 |---------------------------|---------|-------------------------------------------------------|
-| `hysteria_up_mbps`        | `0`     | 上行带宽限制，单位 Mbps，0 表示使用 BBR                             |
-| `hysteria_down_mbps`      | `0`     | 下行带宽限制，单位 Mbps，0 表示使用 BBR                             |
+| `hysteria_up_mbps`        | `0`     | 上行带宽参数，单位 Mbps；上下行都为 0 时使用 BBR |
+| `hysteria_down_mbps`      | `0`     | 下行带宽参数，单位 Mbps；上下行都为 0 时使用 BBR |
 | `hysteria_obfs_type`      | 无       | 混淆类型，可选: `salamander`，留空不混淆                            |
 | `hysteria_obfs_password`  | 无       | 混淆密码                                                  |
 | `hysteria_server_name`    | 无       | TLS SNI 域名（一般从面板自动获取）                                  |
 | `hysteria_cert_file`      | 无       | TLS 证书文件路径（支持自动申请，配置 cert_domain + cert_mode 即可）       |
 | `hysteria_key_file`       | 无       | TLS 密钥文件路径                                             |
-| `hysteria_allow_insecure` | `false` | 客户端兼容字段，服务端忽略；自签证书场景需要客户端自行开启不安全连接                |
+| `hysteria_allow_insecure` | `false` | 客户端兼容字段，服务端忽略；自签证书应在客户端配置信任或证书 pin，见 Hy2 文档 |
 | `hysteria_disable_udp`    | `false` | 是否禁用 UDP 转发                                            |
 
 > `hysteria_up_mbps / hysteria_down_mbps` 是 Hysteria2 自身的带宽参数；另外通用的 `user_speed_limit`、`node_speed_limit` 也会对 Hysteria2 生效。
@@ -696,7 +759,7 @@ anytls_key_file=/etc/ssl/private/privkey.pem
 | `tuic_cert_file`          | 无     | TLS 证书文件路径（支持自动申请，配置 cert_domain + cert_mode 即可）       |
 | `tuic_key_file`           | 无     | TLS 密钥文件路径                                             |
 | `tuic_ech_server_keys`    | 无     | TUIC 服务端 ECH keyset，base64 编码；面板下发 `ech_server_keys` 时会自动接入，启用后要求 TLS 1.3 |
-| `tuic_allow_insecure`     | `false` | 客户端兼容字段，服务端忽略；自签证书场景需要客户端自行开启不安全连接                |
+| `tuic_allow_insecure`     | `false` | 客户端兼容字段，服务端忽略；证书信任或 pin 需按客户端支持方式配置 |
 | `tuic_disable_udp`        | `false` | 是否禁用 UDP 转发                                          |
 | `tuic_zero_rtt_handshake` | `true` | 是否启用 0-RTT 握手；未显式填写时按运行时默认 `true`                    |
 | `tuic_max_idle_time`      | `15`  | QUIC 连接最大空闲时间，单位秒；`0` 表示使用默认值 `15`                  |
@@ -740,7 +803,7 @@ QUIC 调优建议：
 | 参数名 | 默认值 | 说明 |
 |--------|--------|------|
 | `mieru_transport` | `TCP` | Mieru 传输协议，可选: `TCP`、`UDP` |
-| `mieru_traffic_pattern` | 无 | Base64 编码的 mieru `TrafficPattern` protobuf；本地填写时可作为覆盖值 |
+| `mieru_traffic_pattern` | 无 | Base64 编码的 mieru `TrafficPattern` protobuf；面板下发非空 traffic_pattern 时优先，否则采用本地值 |
 | `mieru_user_hint_is_mandatory` | `false` | 是否强制要求客户端携带 user hint；默认关闭以兼容旧版或第三方 Mieru 客户端，多用户节点如需避免 hint 未命中时遍历所有用户尝试解密可设为 `true` |
 | `mieru_multiplexing` | `MULTIPLEXING_LOW` | 兼容保留的客户端侧多路复用偏好；当前 heki 服务端不消费该值 |
 | `mieru_tcp_idle_timeout` | `0` | 上游 TCP 双向无流量期限；`0`/空关闭，非零至少 `1m`，包含尚有静默会话的连接 |
@@ -777,7 +840,7 @@ QUIC 调优建议：
 >
 > 另外，`cert_mode=none` 可显式关闭自动证书申请；若已配置手动证书路径，仍会照常加载，适用于节点独立配置中覆盖主配置的证书行为
 >
-> 对接 XBoard 时，面板运行时还可能下发 `cert_mode=content`。这表示面板直接给出 PEM 证书内容，heki 会先把它安装到本地托管目录，再按正常 TLS 路径加载；它不是 `heki.conf` 里推荐手写的本地自动申请模式。运行时优先级为 `本地手动证书 > 面板下发证书内容 > 自动申请证书`。
+> 面板运行时还可能下发 `cert_mode=content` 或 XiaoV2Board 的 `remote`，由面板提供 PEM 证书及私钥。它们不是只在本地写一个模式名就能自动获得证书的方式。运行时优先级为 `本地手动证书 > 面板下发证书内容 > 自动申请证书`；自签 pin 示例见 [XiaoV2Board Hy2](hysteria/v2board-hysteria.md) 和 [PPanel Hy2](hysteria/ppanel-hysteria.md)。
 
 #### ① 自定义证书文件路径
 

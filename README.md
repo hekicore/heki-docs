@@ -6,6 +6,8 @@
 
 [安装与配置](heki/heki-config.md) | [Docker 部署](docker/docker-tutorial.md)
 
+[复杂配置实例](heki/config-examples.md) · [Mieru TCP 回收](mieru/xboard-mieru.md#mieru-tcp-连接回收配置) · [XHTTP 证书验证](other/xhttp-config.md)
+
 > 当前稳定版：`v1.2.9`；Docker 推荐标签：`hekicore/heki:latest`；发布日期：`2026-10-31`
 
 ## v1.2.9 更新摘要

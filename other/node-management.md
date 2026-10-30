@@ -27,6 +27,9 @@ heki 支持在单个实例中运行多个节点，并提供完整的节点管理
 | `zero_rtt_handshake` | TUIC 节点会按面板值启用或关闭 0-RTT |
 | `auth_timeout` / `heartbeat` | TUIC 节点会自动接入认证超时与心跳间隔；支持秒数和常见 duration 字符串 |
 | `encryption_settings` | `xiaov2board` `v2node` 下发 `mlkem768x25519plus` 时，会自动转换为 VLESS 服务端 `decryption` |
+| XiaoV2Board `tls_settings.cert_mode=remote`、`tls_cert`、`tls_key`、`server_name` | 安装面板提供的证书与私钥；若提供证书 SHA-256 pin，会先校验再使用，本地显式手动证书优先 |
+| PPanel 自签证书指纹 | Heki 状态上报发送 `X-Node-Certificate-SHA256`，面板保存到 `cert_pin_sha256`；客户端订阅仍需模板输出 pin |
+| Mieru `transport` / `network`、`traffic_pattern`、`user_hint_is_mandatory` | 映射到实际传输、流量模式和 user hint 策略；明确下发时优先于本地对应值 |
 
 证书补充说明：
 
@@ -40,7 +43,7 @@ heki 支持在单个实例中运行多个节点，并提供完整的节点管理
 - 面板 `routes` / `custom_outbounds` / `custom_routes` JSON 现在会转换为 heki 本地内存路由；匹配时优先按面板路由执行，未命中再继续匹配本地 `routes_file` / `routes_url`（未显式配置 `routes_file` 时默认回退到同目录 `routes.toml`）。
 - 若面板路由里使用了 heki 当前无法承载的字段或出站类型，启动时会明确报出具体规则位置和不支持字段。
 - `xhttp` / `splithttp` 入站运行时现已支持 `vmess` / `vless` / `trojan` / `anytls`。面板下发 `xhttp` 时，heki 会在运行时规范化为 `splithttp`，不会静默回退到 `tcp`。
-- `VMess / VLESS / Trojan / AnyTLS` 的 `xhttp` 都可以通过 XBoard 的 `network/networkSettings` 下发；如果某个面板分支没有返回这些字段，AnyTLS 可改用本地直配 `anytls_transport=xhttp`。
+- XBoard 官方默认模板的 VMess / VLESS / Trojan XHTTP 已适配；官方 AnyTLS server config 尚缺 network/networkSettings，需使用能下发这些字段的分支或按本地支持范围配置，并另行保证客户端订阅正确。
 - 对 XBoard 常见的 `xhttp` 模版，`xhttp_extra` 里的范围值和开关值支持常见字符串写法，例如 `"16-32"`、`"8"`、`"true"`；服务端不会使用的附加字段，以及默认模版里不完整的 `downloadSettings` 占位对象，都会自动忽略，不会因此导致节点启动失败。
 - `splithttp` 当前不能与 `proxy_protocol` 或 `mptcp` 同开；如果前面有 nginx / caddy 做 TLS 卸载，才考虑 `force_close_ssl=true`。
 - `xiaov2board` `v2node` 的 Shadowsocks 只有 `network=tcp` 和兼容映射的 `network=http` 会接收；其余 `ws` / `grpc` / `httpupgrade` / `xhttp` 等都会直接报错。
@@ -49,6 +52,17 @@ heki 支持在单个实例中运行多个节点，并提供完整的节点管理
 
 - `disable_sni` 主要用于客户端订阅，不是 heki 服务端入站开关。
 - XBoard 里的 `utls`、`multiplex`、`brutal` 当前主要用于客户端配置生成，不作为 heki 服务端入站配置入口。
+- Hy2 / TUIC 的 `allow_insecure` 不会让服务端替客户端跳过证书验证；客户端应按支持情况配置证书信任或 pin。
+- Mieru `multiplexing` 是客户端复用偏好，后端保留该值但不据此限制连接数量；三项 TCP 回收超时需要在 Heki 本地配置。
+
+### 常见的“改了但没生效”
+
+1. 面板 JSON 字段与 Heki 本地键不同。例如面板的 `transport=UDP` 对应本地 `mieru_transport=UDP`。
+2. `[USER]` 只接受白名单中的参数；`server_type`、普通传输参数和 `user_speed_limit` 不能写在那里。查看 [节点参数表](heki/heki-config.md#_221-可在-user-区修改的参数)。
+3. 修改监听、证书或传输后，需要重启节点进程；用户同步不等于全部节点配置都会热更新。
+4. 后端运行参数正确，不代表面板订阅也正确。自签证书 pin、SS 插件和 XHTTP 路径应同时检查客户端拿到的订阅。
+
+SSPanel-UIM 继续使用 `mod_mu`，无需为这次更新改 API。XiaoV2Board V2 config / v2node 节点的数据请求仍保留兼容回退，不需要用户手动把所有节点改成另一种协议类型。
 
 ## 管理命令
 

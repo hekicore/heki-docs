@@ -11,6 +11,24 @@
 | `dy_limit_time`          | `600`   | 触发限速后的限速时间，秒                                   |
 | `dy_limit_white_user_id` | 无       | 动态限速用户白名单，填写用户id，以`,`分隔多个用户id，在白名单的用户永远不会被动态限速 |
 
+## 完整配置示例
+
+将以下内容加入主配置 `heki.conf`，不要放进节点 `[USER]` 区：
+
+```ini
+dy_limit_enable=true
+dy_limit_duration=20:00-02:00
+dy_limit_trigger_time=60
+dy_limit_trigger_speed=100
+dy_limit_speed=30
+dy_limit_time=600
+dy_limit_white_user_id=1001,1002
+```
+
+含义：在服务器本地时间 20:00 到次日 02:00 期间统计，用户在统计窗口内达到触发条件后限制为 30 Mbps，保持 600 秒；用户 ID 1001、1002 不参与动态限速。实际使用时把示例 ID 改成自己的用户，或将白名单留空。需要全天统计时设置 `dy_limit_duration=`。保存后重启 Heki。
+
+`100Mbps` 约为 `12.5MB/s`，不要把 Mbps 与下载软件的 MB/s 混用。此配置只会收紧现有速度上限，套餐只有 20 Mbps 的用户不会被提高到 30 Mbps。
+
 ## 限速时间段解释
  - 时间段使用`服务器本地时区`进行判断，不会强制按 `UTC+8`
  - 支持配置多个时间段，每个时间段以逗号`,`分隔

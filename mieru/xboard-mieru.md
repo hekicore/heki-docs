@@ -35,7 +35,7 @@ heki 需要手动指定 `server_type` 来配置协议类型，端口、加密方
 |-------|--------|------|
 | `mieru_transport` | `TCP` | 传输协议，可选: `TCP`、`UDP` |
 | `mieru_multiplexing` | `MULTIPLEXING_LOW` | 兼容保留的客户端侧多路复用偏好，可选: `MULTIPLEXING_OFF`、`MULTIPLEXING_LOW`、`MULTIPLEXING_MIDDLE`、`MULTIPLEXING_HIGH`。当前 heki 服务端不消费该值 |
-| `mieru_traffic_pattern` | 空 | Base64 编码的 mieru `TrafficPattern` protobuf。若面板已下发 `traffic_pattern`，heki 会自动读取；本地填写时可作为覆盖值 |
+| `mieru_traffic_pattern` | 空 | Base64 编码的 mieru `TrafficPattern` protobuf；面板下发非空 traffic_pattern 时优先，否则使用本地值 |
 | `mieru_user_hint_is_mandatory` | `false` | 是否强制要求客户端携带 user hint。默认关闭以优先兼容旧版或第三方 Mieru 客户端；多用户节点如需降低异常连接或旧式探测流量下的 CPU 消耗可设为 `true` |
 
 ## Mieru TCP 连接回收配置
@@ -135,12 +135,16 @@ Mieru TCP 支持 Proxy Protocol v1 / v2；Mieru UDP 只接收 Proxy Protocol v2 
 - `mieru_user_hint_is_mandatory` 默认关闭，可兼容不携带 hint 的旧客户端；开启后会要求客户端携带 user hint，缺少 hint 的异常流量不会进入多用户逐个尝试解密的高 CPU 路径
 - `mieru_multiplexing` 属于客户端侧多路复用偏好，当前 heki 服务端不消费该参数，无需在服务端额外配置
 
-如果你不想依赖面板，也可以在本地手工覆盖：
+面板未下发对应字段时，也可在主配置中补充：
 
 ```ini
 mieru_traffic_pattern=CgIIBw==
 mieru_user_hint_is_mandatory=true
 ```
+
+面板明确下发 `traffic_pattern` 或 `user_hint_is_mandatory` 时会覆盖对应本地值。`mieru_traffic_pattern` 不支持放在节点 `[USER]` 区；`mieru_user_hint_is_mandatory` 支持该位置，但仍受面板下发值影响。先确认客户端支持 user hint 再开启强制校验。
+
+完整的双节点配置、Docker Compose 示例和“删除覆盖”与“填写 0”的区别见 [复杂配置实例](heki/config-examples.md)。
 
 ## 启动
 

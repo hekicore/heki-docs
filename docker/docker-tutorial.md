@@ -20,11 +20,26 @@ systemctl enable docker
 | 支持架构 | `linux/amd64`、`linux/arm64`（自动选择） |
 | 标签 | `hekicore/heki:latest`（正式版）、`hekicore/heki:beta`（测试版）、`hekicore/heki:版本号` |
 
-> 当前稳定版：`v1.2.8`；最近更新：`2026-10-07`（同版本重发）。如需更新，请重新拉取 `hekicore/heki:latest`，或明确拉取 `hekicore/heki:1.2.8`。
+> 当前稳定版：`v1.2.9`；发布日期：`2026-10-31`。更新时拉取 `hekicore/heki:latest`，或固定 `hekicore/heki:1.2.9`。
 
 ---
 
-## v1.2.8 更新说明
+## v1.2.9 更新说明
+
+- 修复 VLESS + Reality/TLS + TCP + Vision 的 UDP（Mux/XUDP）转发
+- XiaoV2Board 支持 Hy2 自签证书下发和 SHA-256 pin 校验；PPanel 自签模式上报实际证书指纹，并兼容新版响应字段
+- Mieru 升级至 3.39.0，握手、空连接与 TCP 无流量超时默认均关闭，可通过 `mieru_handshake_timeout`、`mieru_empty_timeout`、`mieru_tcp_idle_timeout` 自行设置；6 分 30 秒是空连接复用宽限，不是连接数
+- 升级 Hysteria 2.13.0、Xray 26.10.29、sing 0.9.6、sing-quic 0.7.1、Reality、Shadowsocks 等依赖并保留本地补丁；Naive 补齐官方 Padding 协商
+- 授权检查与缓存容灾加固，保留原授权签名协议和旧缓存供回滚；正式包默认选择性混淆授权包，协议转发路径不新增逐包/逐连接联网或验签
+- SSPanel-UIM、XBoard、XiaoV2Board、PPanel 的 11 个选定真实联调案例通过，不代表穷举所有组合
+
+升级前请注意：XHTTP 下载端的 `allowInsecure=true` 必须迁移为可信证书或 pin；PPanel 自签 Hy2 默认订阅模板遗漏 pin，需要按文档迁移。在线授权节点应保持系统时间准确并保留缓存，建议先小批量滚动升级。
+
+[完整发布说明](https://github.com/hekicore/heki/releases/tag/v1.2.9) · [PPanel Hy2 迁移](../hysteria/ppanel-hysteria.md)
+
+---
+
+## v1.2.8 更新说明（历史版本）
 
 - 2026-10-07 同版本重发：修复 Mieru 无握手及会话结束后的空 TCP 长期保留问题；保留约 6 分 30 秒复用宽限，仍有逻辑会话的连接不受空闲回收影响
 - 修复 Mieru 帧在维护超时边界到达时可能被误截断的问题；协议格式、加密和 nonce 规则保持不变
@@ -236,10 +251,10 @@ docker pull hekicore/heki:beta
 docker stop heki && docker rm heki
 # 重新执行 docker run 命令，将镜像改为 hekicore/heki:beta
 
-# 切换到指定版本 1.2.8
-docker pull hekicore/heki:1.2.8
+# 切换到指定版本 1.2.9
+docker pull hekicore/heki:1.2.9
 docker stop heki && docker rm heki
-# 重新执行 docker run 命令，将镜像改为 hekicore/heki:1.2.8
+# 重新执行 docker run 命令，将镜像改为 hekicore/heki:1.2.9
 ```
 
 ---
@@ -405,8 +420,8 @@ docker compose pull && docker compose up -d
 # image: hekicore/heki:beta
 docker compose pull && docker compose up -d
 
-# 切换到指定版本 1.2.8：将 docker-compose.yml 中的 image 改为 hekicore/heki:1.2.8
-# image: hekicore/heki:1.2.8
+# 切换到指定版本 1.2.9：将 docker-compose.yml 中的 image 改为 hekicore/heki:1.2.9
+# image: hekicore/heki:1.2.9
 docker compose pull && docker compose up -d
 ```
 

@@ -2,7 +2,7 @@
 
 ?> heki 已支持读取 XBoard `mieru` 节点里的 `traffic_pattern` 字段，也就是面板里常见的 “流量(Base64)” / `traffic_pattern` 配置。
 !> Mieru 会基于用户名、密码和系统时间派生密钥。请确保客户端与服务端时间同步正常，推荐保持秒级误差；按上游协议文档，时间差理论上不应超过约 4 分钟。注意这里的 `2 分钟` 指的是协议里的时间取整窗口，不是建议的时间误差上限。
-?> Heki 1.2.8 于 2026-10-07 同版本重发后，会回收无握手或已无逻辑会话的空 TCP；会话结束后保留约 6 分 30 秒复用宽限。该时长是服务端资源策略，不是 Mieru 线协议期限；仍有逻辑会话的连接不会因此断开。
+?> 当前默认关闭额外的 TCP 回收策略，由参数自行启用。旧版的 `6 分 30 秒` 是空连接复用宽限，不是连接数量限制。
 
 ## 前提条件
 
@@ -39,6 +39,16 @@ heki 需要手动指定 `server_type` 来配置协议类型，端口、加密方
 | `mieru_user_hint_is_mandatory` | `false` | 是否强制要求客户端携带 user hint。默认关闭以优先兼容旧版或第三方 Mieru 客户端；多用户节点如需降低异常连接或旧式探测流量下的 CPU 消耗可设为 `true` |
 
 ## Mieru 中转获取真实 IP（Proxy Protocol）
+
+回收策略可在主配置或节点 `[USER]` 区设置，三项默认均为 `0`（关闭）：
+
+```ini
+mieru_tcp_idle_timeout=0
+mieru_handshake_timeout=0
+mieru_empty_timeout=0
+```
+
+`mieru_handshake_timeout=30s` 回收尚未建立会话的 TCP；`mieru_empty_timeout=6m30s` 恢复旧版空 TCP 复用宽限，这两项不会因空闲误关仍有会话的连接。`mieru_tcp_idle_timeout=10m` 使用 Mieru 3.39 的双向无流量策略，非零至少 `1m`，即使仍有静默业务会话也可能关闭，因此应按需要开启。
 
 Mieru 的 TCP 和 UDP Proxy Protocol 开关是分开的：
 

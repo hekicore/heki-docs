@@ -2,7 +2,7 @@
 
 !> 原版 V2Board 的实际兼容性取决于面板分支返回的 API 字段。若你的面板未返回 mieru 所需字段，建议优先使用 XBoard / PPanel。
 !> Mieru 会基于用户名、密码和系统时间派生密钥。请确保客户端与服务端时间同步正常，推荐保持秒级误差；按上游协议文档，时间差理论上不应超过约 4 分钟。注意这里的 `2 分钟` 指的是协议里的时间取整窗口，不是建议的时间误差上限。
-?> Heki 1.2.8 于 2026-10-07 同版本重发后，会回收无握手或已无逻辑会话的空 TCP；会话结束后保留约 6 分 30 秒复用宽限。该时长是服务端资源策略，不是 Mieru 线协议期限；仍有逻辑会话的连接不会因此断开。
+?> 本次上游兼容更新后，额外的 Mieru TCP 回收策略默认关闭；可分别设置 `mieru_handshake_timeout`、`mieru_empty_timeout`、`mieru_tcp_idle_timeout`，详见 [XBoard Mieru 配置说明](mieru/xboard-mieru.md)。旧版的 `6m30s` 是无逻辑会话的空 TCP 复用宽限，不是连接数量。
 
 ?> `mieru_user_hint_is_mandatory` 默认关闭，以优先兼容不携带 user hint 的旧版或第三方客户端。多用户节点如需降低异常连接或缺少 user hint 探测流量的 CPU 消耗，可在 `heki.conf` 或节点 `[USER]` 区设为 `true`。
 ?> `mieru_multiplexing` 属于客户端侧多路复用偏好。当前 heki 的 Mieru 服务端不会消费这个值，因此它不会改变服务端监听或转发行为。

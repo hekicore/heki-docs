@@ -1,5 +1,7 @@
 # ppanel 对接 vless
 
+`tcp + reality + xtls-rprx-vision` 支持 UDP，经 XUDP/Mux 在 TCP 连接内转发；Vision 出站也支持 UDP。
+
 ## 第一步，在面板添加一个节点
 
 在 ppanel 后台添加 VLESS 节点，配置端口、传输层、安全类型等参数。

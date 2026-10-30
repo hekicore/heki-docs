@@ -64,7 +64,7 @@ routes 用于将入口节点收到的用户流量，按规则转发到不同的�
 
 !> 本地 `routes_file` / `routes_url` 支持 `protocol:xxx` 首包协议规则，但它只用于拦截，`不参与普通路由分流`。这类路由的出口必须是 `block/reject`，且不能和 `domain/ip/port` 等普通规则混写。
 
-> TCP 和 UDP 共用同一路由匹配逻辑，不需要单独写 `network="tcp,udp"`。是否支持 UDP 取决于出口类型：`http` 不支持 UDP；`direct`、`redirect`、`socks`、`ss`、`vmess`、`trojan`、`ssr`、`anytls`、`vless`（非 Vision flow）均可用于 UDP；`vless` 的 `xtls-rprx-vision` 仅支持 `tcp + tls` 或 `tcp + reality`，不支持 UDP。
+> TCP 和 UDP 共用同一路由匹配逻辑，不需要单独写 `network="tcp,udp"`。`http` 出口不支持 UDP；`direct`、`redirect`、`socks`、`ss`、`vmess`、`trojan`、`ssr`、`anytls`、`vless` 均可用于 UDP。VLESS Vision 在 `tcp + tls` 或 `tcp + reality` 上传输 XUDP，因此底层传输为 TCP 也可以转发 UDP 数据报。
 
 > “无匹配则关闭连接”描述的是本地 `routes_file` / `routes_url`。对于 XBoard / XiaoV2Board 面板下发的运行时路由，heki 会先匹配面板路由；若未命中，再继续匹配本地路由。若本地路由也未启用，且面板没有提供默认出站规则，heki 才会对未命中流量使用最终 `direct` 兜底。
 
@@ -301,7 +301,7 @@ skip_cert_verify=false
 
 !> `network="http"` 与 `network="h2"` 共用同一套 HTTP/2 传输实现。
 !> `tls=true` 为可选；未开启时，`ws` 使用明文 WebSocket，`http` / `h2` / `grpc` 使用明文 HTTP/2（h2c）。
-!> `flow="xtls-rprx-vision"` 仅支持 `network="tcp"` 且必须 `tls=true` 或 `security="reality"`，不支持 UDP。
+!> `flow="xtls-rprx-vision"` 仅支持 `network="tcp"` 且必须 `tls=true` 或 `security="reality"`；UDP 自动使用 XUDP 封装。
 !> 也兼容旧字段别名：`http_path`、`http_host`、`service_name`。
 
 ```toml

@@ -71,7 +71,7 @@ ppanel 使用 `secret_key` 作为通信密钥（对应 heki 的 `panel_key`）�
 heki config type=ppanel server_type=vless node_id=1 panel_url=https://xxx.com/ panel_key=your-secret-key
 ```
 
-> ppanel 支持的协议: v2ray(vmess)、vless、ss、trojan、hysteria、tuic、anytls、naive、mieru，不支持 SSR
+> Heki 可对接的 PPanel 协议：v2ray(vmess)、vless、ss、ssr、trojan、hysteria、tuic、anytls、naive、mieru。面板新增的 Snell、Nowhere 暂未实现。
 
 ### heki-v1 公共 WebAPI 对接示例
 
@@ -222,6 +222,9 @@ heki.conf（最低优先级）→ 所有参数的全局默认值
 | `reality_private_key` | 无 | 节点独立 VLESS Reality 私钥，仅 Reality 模式生效 |
 | `tuic_ech_server_keys` | 无 | 节点独立 TUIC 服务端 ECH keyset，base64 编码，仅 `server_type=tuic` 生效 |
 | `mieru_user_hint_is_mandatory` | `false` | Mieru 是否强制要求客户端携带 user hint，仅 `server_type=mieru` 生效 |
+| `mieru_tcp_idle_timeout` | `0` | Mieru 底层 TCP 双向无流量回收；启用时至少 `1m`，会影响静默业务会话 |
+| `mieru_handshake_timeout` | `0` | Mieru 未建立会话的 TCP 回收时长，如 `30s`；`0` 关闭 |
+| `mieru_empty_timeout` | `0` | Mieru 会话全部结束后的空 TCP 保留时长，如 `6m30s`；`0` 关闭 |
 | `check_interval` | `60` | 节点同步间隔，单位秒 |
 | `submit_interval` | `60` | 提交数据间隔，单位秒 |
 | `domain_audit_enable` | `false` | 该节点的域名访问审计开关；必须为 `true` 才记录，默认关闭 |
@@ -429,6 +432,10 @@ heki 支持在同一实例中运行不同协议类型的节点。节点实际协
 | `heki_key` | 无 | 授权码，不填即为免费版（88 人全协议，兼容 `license_key`） |
 | `license_mode` | `auto` | 授权模式：`auto` 或 `offline-required` |
 | `offline_license_b64` | 无 | 离线授权串，格式为 `base64(json(SignedLicense))` |
+
+授权检查在启动、用户同步和后台定时执行，不为每条连接增加联网验证。免费版仍为每节点 88 人；已有授权码和离线授权格式继续使用，无需另外部署授权后台。
+
+在线授权节点需保持系统时间准确：在线响应的签名签发时间允许 5 分钟偏差。断网宽限从签名中的签发时间计算，默认且最低为 7 天，同时受套餐到期时间限制；修改缓存文件时间或重启不会重新获得宽限。新版本可读取仍有效的旧缓存，联网验证成功后将新格式写入独立文件，保留原缓存供回滚使用。回退旧版时，若原缓存已到期或机器指纹改变，仍需联网验证。缓存已超期或缺少有效签发时间时，需要先恢复授权服务连接。
 
 ## 3.2 对接配置（必填）
 
@@ -736,6 +743,11 @@ QUIC 调优建议：
 | `mieru_traffic_pattern` | 无 | Base64 编码的 mieru `TrafficPattern` protobuf；本地填写时可作为覆盖值 |
 | `mieru_user_hint_is_mandatory` | `false` | 是否强制要求客户端携带 user hint；默认关闭以兼容旧版或第三方 Mieru 客户端，多用户节点如需避免 hint 未命中时遍历所有用户尝试解密可设为 `true` |
 | `mieru_multiplexing` | `MULTIPLEXING_LOW` | 兼容保留的客户端侧多路复用偏好；当前 heki 服务端不消费该值 |
+| `mieru_tcp_idle_timeout` | `0` | 上游 TCP 双向无流量期限；`0`/空关闭，非零至少 `1m`，包含尚有静默会话的连接 |
+| `mieru_handshake_timeout` | `0` | 未建立会话的 TCP 回收期限；`0`/空关闭，如 `30s` |
+| `mieru_empty_timeout` | `0` | 曾有会话但现在为空的 TCP 回收期限；`0`/空关闭，如 `6m30s` |
+
+当前默认不启用这三项额外回收策略。旧版的 `6 分 30 秒` 是空 TCP 的复用宽限，不是连接数量上限。普通网络错误、停止服务和关闭用户会话仍正常处理。
 
 !> `mieru_multiplexing` 是客户端侧多路复用偏好，当前 heki 服务端不消费该参数，因此不建议作为服务端配置项使用。
 

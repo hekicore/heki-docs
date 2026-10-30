@@ -1,5 +1,7 @@
 # xboard 对接 naive
 
+本次兼容更新补齐官方 NaiveProxy 的 `Padding` 协商：双向前 8 帧携带长度和随机 padding，随后转为普通数据流。面板流量只计算有效载荷。当前传输范围仍为 TLS 上的 HTTP/2 CONNECT，未实现 HTTP/3。
+
 ## 前提条件
 
 - xboard 面板已部署并正常运行

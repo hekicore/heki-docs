@@ -2,6 +2,8 @@
 
 > 使用 ss 密码单端口必看: [ss 密码单端口优化](other/ss-aead.md)
 
+`v1.2.9` 同步 Shadowsocks 上游帧长度校验及用户热更新并发修复，保留 SS / SS2022 加密、nonce、chunk 和 UDP session 格式；XiaoV2Board V2 config / v2node 数据端点兼容保持不变。
+
 ## 第一步，在面板添加一个 SS 节点
 
 在 Xboard 后台添加 Shadowsocks 节点，选择加密算法。

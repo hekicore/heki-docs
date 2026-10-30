@@ -1,5 +1,7 @@
 # ppanel 对接 naive
 
+支持官方客户端的 `Padding` 协商和双向前 8 帧填充，计费不包含 padding；当前使用 HTTP/2 CONNECT over TLS，未实现 HTTP/3。
+
 ## 第一步，在面板添加一个节点
 
 在 ppanel 后台添加 Naive 节点，配置端口和 SNI。

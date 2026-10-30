@@ -6,6 +6,8 @@
 
 建议仅使用 `tcp + reality + xtls-rprx-vision` 组合。
 
+该组合支持 TCP 和 UDP。UDP 经 XUDP/Mux 封装在 TCP 连接内；此前 Heki 缺少 VLESS Mux 入站路径，现已补齐。Vision 账号也兼容客户端使用空 flow 的 UDP/XUDP，但不能通过空 flow 或 Mux TCP 子流绕过 Vision。
+
 当前 heki 已确认支持 XBoard server config 下发的 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp`。
 面板下发的 `xhttp` 会在运行时规范化为 `splithttp`，按内置 Xray-core listener 启动，不会静默退回 `tcp`。
 

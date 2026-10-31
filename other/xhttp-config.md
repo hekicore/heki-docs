@@ -42,6 +42,16 @@ Heki 仍需要该域名的有效服务端证书，可配置手动证书或自动
 
 兼容范围包括字符串数字/范围、布尔字符串、headers 数组及新旧 session 字段。不完整的 downloadSettings 占位对象会忽略；显式提供了完整对象但内容不合法时会报错，例如其中 `network=ws` 不受支持。
 
+## extra 参数与停止行为
+
+已验证 `xPaddingObfsMode=true`、`xPaddingMethod=tokenish`、`xPaddingPlacement=queryInHeader`，配合 `xPaddingHeader=Referer`、`xPaddingKey=utm_source` 可进行 padding 混淆与校验。客户端和服务端应使用匹配的配置；查询键不一致会被拒绝。
+
+`xmux.maxConcurrency`、`xmux.hMaxRequestTimes`、`xmux.hMaxReusableSecs` 支持 `16-32`、`600-900`、`1800-3000` 这类范围值。这些参数用于客户端 HTTP 连接复用，需由面板正确下发给支持的客户端；不能当作 Heki 服务端的连接数、请求数或限速开关。
+
+2026-10-31 最新重发的 1.2.9 修复了 HTTP/3 有活跃代理会话时停止卡住的问题，并回收连接、上传队列及 UDP 监听端口；packet-up、stream-up、stream-one 均有关闭回归测试。无需增加参数，正常运行时不会因此定时切断连接；主动停止节点时会结束该节点已有连接。
+
+已安装早期 1.2.9 的用户仍需重新更新安装包，Docker 用户需拉取镜像并重建容器，仅重启旧容器不会得到修复。
+
 ## allowInsecure=true 升级后怎么处理
 
 它原本表示“不验证对方证书”。Heki 1.2.9 使用的新版 Xray 不再接受 `downloadSettings.tlsSettings.allowInsecure=true`。只有使用这项下载端 TLS 配置的节点需要迁移，不是所有 Heki 节点都要重新申请证书。

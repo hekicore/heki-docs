@@ -8,7 +8,9 @@
 
 [复杂配置实例](heki/config-examples.md) · [Mieru TCP 回收](mieru/xboard-mieru.md#mieru-tcp-连接回收配置) · [XHTTP 证书验证](other/xhttp-config.md)
 
-> 当前稳定版：`v1.2.9`；Docker 推荐标签：`hekicore/heki:latest`；发布日期：`2026-10-31`
+> 当前稳定版：`v1.2.9`；Docker 推荐标签：`hekicore/heki:latest`；首次发布：`2026-10-31`；最新重发：`2026-11-01`
+
+本次重发修复 VLESS + Reality + TCP + Vision 升级后的 HTTPS 中断/崩溃及部分 Mihomo 客户端握手失败。原有服务端配置无需修改；旧版 1.2.9 也需执行 `heki update 1.2.9`，Docker 用户执行 `docker compose pull && docker compose up -d`。[完整发布说明](https://github.com/hekicore/heki/releases/tag/v1.2.9)。
 
 ## 🎉 免费版
 

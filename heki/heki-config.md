@@ -612,7 +612,8 @@ anytls_key_file=/etc/ssl/private/privkey.pem
 | `v2ray_fallback_addr` | 无 | 回落地址，需同时设 `tls_alpn=http/1.1` |
 | `v2ray_fallback_port` | 无 | 回落端口 |
 | `force_vmess_aead` | `false` | 强制 VMessAEAD，alterId 将被忽略；若客户端订阅仍保留 `alterId` 字段，建议同时在面板输出中直接删除该字段 |
-| `force_vmess_md5` | `false` | 强制旧版 VMessMD5，适合明确兼容 legacy md5 的客户端 |
+| `force_vmess_md5` | `false` | 强制旧版 VMessMD5，只选择认证模式，不设置 alterId 数量 |
+| `vmess_alter_id` | `0` | 2026-11-05 重发新增；面板节点 API 未提供 alterId 时的补充值，整数 `0..65535`。支持主配置及同名小写环境变量，不支持节点 `[USER]`；面板显式值（含 `0`）优先 |
 | - | | |
 | `vmess_aead_invalid_access_enable` | `false` | 错误密码攻击优化 |
 | `vmess_aead_invalid_access_count` | `30` | 错误次数 |

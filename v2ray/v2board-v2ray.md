@@ -51,6 +51,7 @@ node_id=1
 
 ### 面板字段补充
 
+- 2026-11-05 重发修复：读取节点 API 的 `alter_id` / `alterId` / `alterID`。若只在订阅中加入 `alterId=1`，需在包含修复的构建里设置 `vmess_alter_id=1`；`force_vmess_md5` 不设置该数量，详见 [alterId 对齐说明](other/vmess-aead.md)。
 - `xiaov2board` 显式下发的具体 `listen_ip` 会作为节点监听地址输入；若返回 `0.0.0.0 / ::` 这类通配地址，heki 会视为默认值而忽略
 - `base_config.push_interval` / `pull_interval` / `node_report_min_traffic` / `device_online_min_traffic` 会自动接入运行参数
 - 面板 `routes` / `custom_outbounds` / `custom_routes` JSON 现在会自动转换为 heki 本地路由模型；匹配时优先按面板路由执行，未命中再继续匹配本地 `routes_file` / `routes_url`（未显式配置 `routes_file` 时默认回退到同目录 `routes.toml`）

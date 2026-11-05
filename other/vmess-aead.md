@@ -25,6 +25,24 @@ heki 默认保留双栈兼容；但如果节点下发里明确带了 `alterId>0`
 - `force_vmess_md5=true` 主要用于兼容老客户端，或你想在没有 `alterId` 自动判定时也手动锁到 legacy md5 的场景
 - 如果没有明确兼容需求，建议优先输出不带 `alterId` 的订阅，或显式开启 `force_vmess_aead=true`
 
+## XiaoV2Board 的 alterId 对齐（2026-11-05 重发）
+
+`force_vmess_md5=true` 只选择旧版认证模式，不等于 `alterId=1`。订阅中的 `alterId` 与提供给后端的节点 API 是两个入口：客户端拿到 `1`，不代表 Heki 也拿到了 `1`。
+
+修复后的代码读取节点 API 的 `alter_id` / `alterId` / `alterID`（数字或数字字符串），并生成相应的认证 ID。此前 XBoard 共用解析器丢弃了这些字段，导致用户同步、端口监听均正常，但客户端认证失败。
+
+如果只改了订阅输出，节点 API 没有提供此字段，可在包含本修复的构建中设置：
+
+```ini
+# 写在 heki.conf；Docker 也可使用同名小写环境变量
+force_vmess_md5=true
+vmess_alter_id=1
+```
+
+`vmess_alter_id` 默认 `0`，范围 `0..65535`，作为所有 VMess 节点的本地默认值；不支持节点 `[USER]` 覆盖。面板明确下发的值优先，包括 `0`，混合节点建议在各节点 API 中分别下发。有效值大于 `0` 时仍沿用自动选择 MD5 的行为，显式 `force_vmess_aead=true` 可覆盖该模式。
+
+启动摘要显示有效的 `alter_id`（大于 `0` 时），生成的节点 `[AUTO]` 配置也记录该值。旧版二进制不会因为加入新参数而获得此修复；离线绑定版本需要重新构建对应交付包。
+
 ## 优点
 相比较于`VMessMD5`，`VMessAEAD`不需要预先生成用户的认证信息，可以节省大量的内存空间
 

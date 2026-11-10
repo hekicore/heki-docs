@@ -10,8 +10,6 @@
 
 > 当前稳定版：`v1.2.9`；Docker 推荐标签：`hekicore/heki:latest`；首次发布：`2026-10-31`；最新重发：`2026-11-05`
 
-本次重发修复 VMess 节点 API 的 `alterId` 丢失问题。节点 API 已下发 `1` 时只需更新 Heki；若仅客户端订阅下发 `1`，需在新构建中补 `vmess_alter_id=1`。面板显式值（含 `0`）优先，详见 [VMess 说明](other/vmess-aead.md)。旧版同号也需重新执行 `heki update 1.2.9`，Docker 用户拉取镜像并重建容器。此前 Reality/Vision 修复继续包含。[完整发布说明](https://github.com/hekicore/heki/releases/tag/v1.2.9)。
-
 ## 🎉 免费版
 
 不配置 `heki_key` 即可使用免费版，最多 88 个有效用户，全部协议和功能，永久免费。
@@ -69,6 +67,7 @@
 
 ## 常用功能文档
 
+- [流量上报与服务器计费](other/traffic-accounting.md)
 - [多路由多出口负载均衡](other/routes-config.md)（含 XBoard / XiaoV2Board 面板运行时路由格式支持说明）
 - [多节点 & 多实例部署](other/heki-multi-instance.md)
 - [多 IP 自动选择出口（源进源出）](other/auto-out-ip.md)

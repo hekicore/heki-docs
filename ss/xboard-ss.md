@@ -4,6 +4,8 @@
 
 `v1.2.9` 同步 Shadowsocks 上游帧长度校验及用户热更新并发修复，保留 SS / SS2022 加密、nonce、chunk 和 UDP session 格式；XiaoV2Board V2 config / v2node 数据端点兼容保持不变。
 
+
+`v1.3.0` 新增 SS AEAD / SS2022 UoT v1/v2，并优化用户认证查找和 SS2022 UDP 会话缓存；普通 SS/SS2022 加密、nonce、chunk 与 UDP session 格式保持不变。客户端需要自行支持并启用 UoT，见本文 ShadowTLS 使用说明中的 `udp_over_tcp` 配置。
 ## 第一步，在面板添加一个 SS 节点
 
 在 Xboard 后台添加 Shadowsocks 节点，选择加密算法。
@@ -477,7 +479,7 @@ obfs=http;obfs-host=www.bing.com
 2. 确认 `host` 填写的域名可以从服务器正常访问（heki 需要连接该域名完成握手）
 3. 日志中出现 `Shadow-TLS v1/v2/v3 enabled` 对应版本的提示，说明内置服务已正常启动
 4. `client hello verify failed: unexpected record type` 是正常的，说明有非 Shadow TLS 客户端尝试连接被拒绝
-5. Shadow TLS 不支持 UDP，如需 UDP 请在客户端启用 `udp_over_tcp`
+5. ShadowTLS 本身不承载原生 UDP，如需 UDP 请在客户端启用 `udp_over_tcp`。Heki 的 SS AEAD / SS2022 入口支持 UoT v1/v2（包括 v2 固定目标及多目标模式）；实际 UDP 目标继续经过节点的目标限制、UDP 路由、限速和流量统计。每条 UoT 连接最多同时保留 256 个目标，空闲目标按 `udp_timeout` 回收。
 
 ### 外部插件不通
 

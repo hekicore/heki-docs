@@ -24,7 +24,9 @@ bash <(curl -Ls https://raw.githubusercontent.com/hekicore/heki/master/install.s
 
 #### 配置与节点
 
-- `heki config`：查看配置
+- `heki config`：查看主配置默认值摘要和本次节点启动结果
+- `heki config --raw`：查看完整主配置原文
+- `heki config --effective`：查看各节点参数的最终值及来源
 - `heki config k=v k2=v2`：快速修改配置项
 - `heki modify / setup`：交互式修改配置、配置引导
 - `heki node list / add <ID> / del <ID>`：查看、新增、删除节点
@@ -88,7 +90,7 @@ heki config type=heki-v1 server_type=vless node_id=1 panel_url=https://api.examp
 ### ② 手动编辑配置文件
 直接编辑`/etc/heki/heki.conf`文件，每行一个配置，以下为示例:
 
-!> 建议直接在 Linux 下进行编辑，`不要在 Windows 下进行编辑`，否则可能会有 Windows 换行符`\r\n`导致的各种奇怪问题
+配置解析支持 UTF-8 BOM 和 Windows CRLF 换行。请保存为 UTF-8 的 `key=value` 文本；注释单独占一行，不要在参数值后追加行尾注释。主配置与节点文件共用行解析，单行上限为 1 MiB。
 
 ```
 type=xboard
@@ -116,7 +118,7 @@ docker run -e type=xboard -e server_type=ss -e node_id=1 -e panel_url=https://xx
 
 所有 `heki.conf` 中支持的配置项均可通过`同名环境变量`设置，环境变量名需直接使用配置 key 本身，通常就是小写，例如 `server_type`、`node_id`、`panel_url`、`dns_strategy`。
 
-只有`证书 DNS 自动申请`所需的厂商密钥类环境变量才使用 `DNS_` 前缀，这些变量会被收集到证书配置里，例如：
+`证书 DNS 自动申请`所需的厂商密钥可使用 `DNS_` 前缀；配置层也接受 `CF_` 开头的 Cloudflare 凭据。这些变量会被收集到证书配置里，例如：
 
 ```bash
 docker run \
@@ -136,7 +138,7 @@ docker run \
 - `heki.conf` 或 `node_x.conf` 的 `[USER]` 区也写 `DNS_CF_Email`、`DNS_CF_Key`
 - heki 调用 acme.sh 时会自动去掉 `DNS_` 前缀，转换成 `CF_Email`、`CF_Key`
 
-虽然直接把 `CF_Email` / `CF_Key` 传给容器时，acme.sh 也可能从进程环境里读到，但这不属于 heki 的配置层，容易和配置文件写法混淆，文档不推荐这样写。
+`CF_Email` / `CF_Key` 也属于 Heki 支持的配置键，可通过主配置、环境变量或节点 `[USER]` 提供。建议同一个凭据统一采用一种命名方式，避免同时填写 `DNS_CF_Key` 和 `CF_Key` 等指向同一厂商变量的键。
 
 ## 1.4 pprof 调试端口
 
@@ -198,24 +200,59 @@ pprof_addr=off
 
 所有节点共享的全局配置，包括面板对接信息、授权码、以及各参数的默认值。
 
+`heki config` 展示文件中的默认值摘要和本次节点启动结果，摘要隐藏全局 `server_type`，不能当完整配置文件使用。需要原文时执行 `heki config --raw`。
+
+`heki config --effective` 列出每个节点本次启动时解析出的最终值，并标注来源：`default`（内置默认值）、`heki.conf`、`env`（环境变量）、`node`（节点 `[USER]`）、`panel/auto`（面板下发或启动时自动解析）。只包含可在节点 `[USER]` 区覆盖的参数以及协议、端口；凭据显示为 `<hidden>`。记录只在节点成功启动后生成，服务未运行或记录不属于当前进程时不显示。
+
+`server_type` 保留为面板协议选择/启动探测参数，不代表所有节点的当前协议；PPanel 多协议节点还会用它选择协议，请保留已有值，不要因为节点已有 `[USER]` 就删除它。节点 `[USER]` 不支持覆盖协议类型。
+
+`heki config k=v` 也只写入文件，不会立即生效或完成运行校验；修改后应重启所属实例并检查启动日志。
+
+主配置中未知键、重复键和格式错误会告警，重复键仍按旧行为取最后一次出现的值。同名环境变量与文件值不同时也会提示；Docker 的 `-e proxy_protocol=true` 会覆盖文件中的 `proxy_protocol=false`。修改环境变量需要重新创建容器，单纯重启容器或修改文件不会改变已有环境变量。
+
+环境变量只覆盖**同名键**。兼容别名有独立的选择顺序，例如非空 `panel_url` 优先于 `webapi_url`，`panel_key` 优先于 `webapi_key`；已有 `panel_key` 时，另设 `webapi_key` 环境变量不会覆盖它。修改对接信息时应使用当前实际采用的键名。
+
+### 主配置和节点区容易混淆的写法
+
+| 操作 | 实际含义 |
+|---|---|
+| 主配置写 `listen=...` | 设置本实例默认监听地址；节点区对应键是 `listen_addr`，两者不能直接互换 |
+| 删除或注释节点参数 | 恢复继承主配置及环境变量，不等于关闭该功能；面板还可能提供最终值 |
+| 节点写 `proxy_protocol=false` | 显式关闭该节点的 Proxy Protocol；如果只是注释这一行，而主配置为 `true`，节点仍会继承开启 |
+| 节点写 `cert_file=`、`listen_addr=` | 空值会保留继承值，不会清除原证书或改为监听全部地址；证书应成对配置 `cert_file` / `key_file` |
+| 节点写 `domain_audit_domains=`、`access_log_clickhouse_password=` | 显式清空对应字段；这与删除该行恢复继承不同 |
+| 节点写 `vmess_alter_id=` | 无效整数，会导致该 VMess 节点启动失败；填 `0` 与删除该行也不是一回事 |
+| 参数值后写 ` # 注释` | 两种文件都不会把它自动当注释剥离；请把注释写在单独一行 |
+| 参数值加一对外层引号 | 主配置会去掉成对的单/双引号；节点区保留引号作为值的一部分，并提示检查 |
+
+为了兼容旧配置，本次没有统一改变空值或引号的解释。布尔参数推荐统一使用 `true` / `false`。主配置和节点 `[USER]` 区都支持旧的 `yes/no`、`1/0`，未识别的非空布尔值仍按旧行为解释为 `false` 并告警。为兼容旧版本，节点 `[USER]` 区的 `proxy_protocol`、`udp_proxy_protocol`、`force_proxy_protocol`、`force_close_ssl` 只有小写 `true` 才开启，写成 `1`/`yes`/`TRUE` 仍为关闭并告警；`force_vmess_md5` / `force_vmess_aead` 写错则该节点启动失败。主配置中无法解析的普通整数仍回退到原默认值并告警；本来就严格校验的字段仍会报错。不要把“进程启动了”当成“每个填写的参数都正确”。
+
+
 ## 2.2 节点独立配置
 
 默认路径：`/etc/heki/nodes/node_{id}.conf`。使用 `-c` 指定其他配置文件时，节点文件位于该配置文件同目录的 `nodes/` 下。
 
-每个节点启动后会自动生成独立的配置文件，文件分为两个区域：
+每个节点成功启动后会分别保存：
 
-- `[AUTO]` 区：每次启动自动更新，展示面板下发的协议、端口等信息，仅供参考，请勿手动修改
-- `[USER]` 区：支持少量节点级覆盖参数，修改后重启 heki 即可生效，重启不会被覆盖
+- `nodes/node_<ID>.conf`：只保留 `[USER]` 覆盖项和注释模板，顶部不再混入自动生成的协议、端口。修改支持项后重启所属实例/容器，原有用户内容会保留。
+- `.runtime/nodes/node_<ID>.conf`：上次成功启动时的参数快照，带生成时间；用于排查，不是编辑入口，也不能据此判断节点现在是否运行。当前启动状态请看 `heki node list` 或所属容器日志。
 
-这里的 `[USER]` 是文件里的完整注释标记 `# ---- [USER] 用户自定义（修改这里，重启保留）----`。请在自动生成文件的这行下面填写参数，不要只新增一个裸 `[USER]` 标题。注释单独占一行，例如先写 `# 握手等待时间`，下一行写 `mieru_handshake_timeout=30s`；不要在值后追加行尾注释。节点区的值不需要引号。
+旧版 `[AUTO]` + `[USER]` 混合文件仍可直接读取，无需手动改格式。升级后该节点首次成功启动时会自动分离两部分，保留 `[USER]` 参数和注释；启动失败不会迁移。新生成文件继续使用旧的完整中文 `[USER]` 标记。
+
+旧的完整注释标记 `# ---- [USER] 用户自定义（修改这里，重启保留）----` 继续有效，也支持单独一行 `[USER]` 或 `# [USER]`。在该标记下面填写参数；旧混合文件中的 `[AUTO]` 应位于它上方，普通说明注释不作为分区标记。缺少标记时会告警，并停止重写该文件以保留用户内容。注释单独占一行，例如先写 `# 握手等待时间`，下一行写 `mieru_handshake_timeout=30s`；不要在值后追加行尾注释。节点区的值不需要引号。
+
+> 1.3.0 升级会拆分节点文件，当前不自动备份。若需要回退 1.2.9，应恢复升级前完整配置；旧版会清理停用节点文件，且不支持新节点参数、简化 USER 标记及拆分后的协议提示。请先阅读 [升级与回退](other/upgrade-rollback.md)。
 
 ### 2.2.1 可在 [USER] 区修改的参数
 
-首次生成的节点配置文件会包含以下默认参数模板。当前版本仅支持下表这些参数在 `[USER]` 区生效，其他键即使写入文件也不会覆盖运行时配置。
+首次生成的节点配置文件会包含以下可调参数模板。表中的默认值仅供参考：节点不填写该项时，会保留主配置/环境变量提供的基础值，最终值还受面板和协议逻辑影响。注释模板中的示例值不会随主配置变化自动更新，不代表当前生效值，请勿整段取消注释。当前版本仅支持下表这些参数在 `[USER]` 区生效，其他键会告警并忽略，不会覆盖运行时配置。日志包含文件、行号和键名，不输出配置值。
 
-| 参数名 | 默认值 | 说明 |
+| 参数名 | 基础默认值参考 | 说明 |
 |--------|-----|------|
-| `listen_addr` | 无 | 节点独立监听 IP；设置后该节点只监听这个地址 |
+| `listen_addr` | 无 | 节点独立监听 IP；面板没有下发具体 `listen_ip` 时，该节点只监听这个地址 |
+| `vmess_alter_id` | 继承主配置 | 仅 VMess；范围 `0..65535`，面板节点 API 未下发 alterId 时兜底，面板显式值（含 `0`）优先 |
+| `force_vmess_md5` | 继承主配置 | 仅 VMess；强制 legacy MD5 认证，不设置 alterId 数量 |
+| `force_vmess_aead` | 继承主配置 | 仅 VMess；强制 AEAD；与 `force_vmess_md5` 互斥，节点区显式设为 `true` 的一项会取代主配置继承的另一项，同一节点区两项都为 `true` 时该节点启动失败 |
 | `proxy_protocol` | `false` | 是否启用 proxy protocol；Mieru TCP 也支持 |
 | `udp_proxy_protocol` | `false` | 是否接收 UDP proxy protocol 头（ss/ssr/mieru UDP 可用） |
 | `force_proxy_protocol` | `false` | 是否强制 proxy protocol |
@@ -228,6 +265,7 @@ pprof_addr=off
 | `acme_server` | `letsencrypt` | ACME CA 选择；支持 `letsencrypt`、`zerossl` 或自定义 ACME directory URL |
 | `dns_provider` | 无 | 节点独立 DNS 验证服务商代码，仅 `cert_mode=dns` 时使用 |
 | `reality_private_key` | 无 | 节点独立 VLESS Reality 私钥，仅 Reality 模式生效 |
+| `hysteria_ech_server_keys` | 无 | 节点独立 Hysteria2 服务端 ECH keyset，Base64 编码，需包含私钥；本地显式值优先于面板，修改后重启 |
 | `tuic_ech_server_keys` | 无 | 节点独立 TUIC 服务端 ECH keyset，base64 编码，仅 `server_type=tuic` 生效 |
 | `mieru_user_hint_is_mandatory` | `false` | Mieru 是否强制要求客户端携带 user hint，仅 `server_type=mieru` 生效 |
 | `mieru_tcp_idle_timeout` | `0` | Mieru 底层 TCP 双向无流量回收；启用时至少 `1m`，会影响静默业务会话 |
@@ -260,7 +298,7 @@ pprof_addr=off
 >
 > `tuic_*_window` 这 4 个窗口参数不只是影响内存，也会影响 TUIC 高带宽场景的峰值速度。当前默认值 `2 / 6 / 3 / 15` 更偏向省内存；如果是 `1Gbps` 以上节点、用户机器配置较好、并且经常做单线程测速或高延迟大流量下载，建议结合下面 `3.4.10 TUIC` 的说明适当调大。
 >
-> `cert_mode=dns` 时，可在 `[USER]` 区继续写入 `DNS_*` 形式的环境变量，例如 `DNS_CF_Email`、`DNS_CF_Key`。运行时会自动转换为 acme.sh 需要的真实环境变量。
+> `cert_mode=dns` 时，可在 `[USER]` 区继续写入 `DNS_*` 形式的环境变量，例如 `DNS_CF_Email`、`DNS_CF_Key`；与主配置一样也接受 `CF_*`。运行时会自动转换为 acme.sh 需要的真实环境变量。
 >
 > 目前 `default_dns`、`dns_strategy`、`dns_rules_url`、`dns_rules_update_interval`、`forbidden_bit_torrent`、`user_conn_limit`、`user_speed_limit`、`user_tcp_limit`、`forbidden_ports`、`sniff_redirect`、`log_level` 等参数仍需在主配置 `heki.conf` 中设置，写入 `[USER]` 区不会生效。
 >
@@ -296,12 +334,14 @@ listen_addr=127.0.0.2
 
 `/etc/heki/nodes/node_252.conf` 的 [USER] 区保持默认不修改。
 
-效果：
-- 节点 250：`server_type=ss`（主配置），`proxy_protocol=true`，`udp_proxy_protocol=true`，`check_interval=30`（节点覆盖）
-- 节点 251：协议仍按面板自动识别，`listen_addr=127.0.0.2`（节点覆盖）
-- 节点 252：`server_type=ss`，`proxy_protocol=false`，`check_interval=60`（全部回退到 heki.conf 默认值）
+在没有同名环境变量、且面板没有覆盖对应监听地址和同步间隔时：
 
-> 如果删除 [USER] 区中的某一行，该参数会回退到 heki.conf 中的全局默认值
+- 节点 250：`proxy_protocol=true`、`udp_proxy_protocol=true`、`check_interval=30`。
+- 节点 251：`listen_addr=127.0.0.2`，其余支持项继承主配置默认值。
+- 节点 252：`proxy_protocol=false`、`check_interval=60`。
+- 三个节点的真实协议仍由面板解析，主配置 `server_type=ss` 用于面板协议选择/启动探测，不代表三个节点的当前协议。
+
+> 删除或注释 `[USER]` 中某一行后，该项恢复继承；最终值还需考虑同名环境变量和面板字段。
 
 域名访问审计也按同样的优先级工作。下面的配置让节点 251 单独记录出口 IP 查询目标，节点 250 和 252 保持关闭：
 
@@ -437,7 +477,7 @@ heki 支持在同一实例中运行不同协议类型的节点。节点实际协
 | 参数名 | 默认值 | 说明 |
 |--------|-----|------|
 | `type` | `sspanel-uim` | 面板类型：`sspanel-uim`/`metron`/`xboard`/`v2board`/`xiaov2board`/`ppanel`/`heki-v1` |
-| `server_type` | 无（必填） | 后端协议：`v2ray`/`vmess`/`vless`/`ss`/`ssr`/`trojan`/`hysteria`/`tuic`/`anytls`/`naive`/`mieru` |
+| `server_type` | 无（必填） | 面板协议选择/启动探测参数，不代表所有节点当前协议；PPanel 多协议节点会据此选择协议。可选：`v2ray`/`vmess`/`vless`/`ss`/`ssr`/`trojan`/`hysteria`/`tuic`/`anytls`/`naive`/`mieru` |
 | `node_id` | 无 | 节点 id，多个以逗号分隔：`1,2,3` |
 | `heki_key` | 无 | 授权码，不填即为免费版（88 人全协议，兼容 `license_key`） |
 | `license_mode` | `auto` | 授权模式：`auto` 或 `offline-required` |
@@ -470,11 +510,11 @@ heki 支持在同一实例中运行不同协议类型的节点。节点实际协
 | `multi_node_listen_strategy` | `auto` | 多节点监听策略：`auto` 会对同端口节点自动拆分监听 IP，兼容常见旧配置直接迁移；`shared` 为每个节点沿用整组 `listen` 地址；`split` 会按 `node_id` 顺序把多 IP 逐个分配给节点 |
 | `tcp_timeout` | `120` | 空闲 TCP 超时，单位分钟，0=不超时 |
 | `udp_timeout` | `2` | 空闲 UDP 超时，单位分钟，`0` 表示回退到协议默认值（当前为 2 分钟） |
-| `mptcp` | `false` | 是否开启 MPTCP 监听 |
+| `mptcp` | `false` | 是否开启 MPTCP 监听。为 `false` 时监听端口明确关闭 MPTCP |
 
 > 默认 `auto` 模式下，如果多个节点使用同一个监听端口，会自动按端口分组拆分 IP，避免第一个节点把整组 IP 全部占用，适合旧配置直接迁移。
 >
-> `listen` 仍然是监听 IP 的唯一来源。也就是说，多 IP 源进源出如果想稳定生效，仍建议显式配置 `listen=all` 或具体 IP 列表；`multi_node_listen_strategy` 只负责在这些监听 IP 上决定多节点如何分配。
+> `listen` 提供主配置的候选监听 IP；节点 `listen_addr` 或面板具体 `listen_ip` 还可以改变单个节点的绑定。`multi_node_listen_strategy` 负责没有显式节点绑定时的地址分配，最终监听地址应结合启动日志核对。
 >
 > 当 `node_id=2,3,4` 且 `listen=1.1.1.1,2.2.2.2,3.3.3.3` 时，若设置 `multi_node_listen_strategy=split`，则节点会按顺序监听：
 > Node 2 -> `1.1.1.1`
@@ -613,7 +653,7 @@ anytls_key_file=/etc/ssl/private/privkey.pem
 | `v2ray_fallback_port` | 无 | 回落端口 |
 | `force_vmess_aead` | `false` | 强制 VMessAEAD，alterId 将被忽略；若客户端订阅仍保留 `alterId` 字段，建议同时在面板输出中直接删除该字段 |
 | `force_vmess_md5` | `false` | 强制旧版 VMessMD5，只选择认证模式，不设置 alterId 数量 |
-| `vmess_alter_id` | `0` | 2026-11-05 重发新增；面板节点 API 未提供 alterId 时的补充值，整数 `0..65535`。支持主配置及同名小写环境变量，不支持节点 `[USER]`；面板显式值（含 `0`）优先 |
+| `vmess_alter_id` | `0` | 面板节点 API 未提供 alterId 时的补充值，整数 `0..65535`。支持主配置、同名小写环境变量及节点 `[USER]`（节点覆盖主配置默认值）；面板显式值（含 `0`）优先 |
 | - | | |
 | `vmess_aead_invalid_access_enable` | `false` | 错误密码攻击优化 |
 | `vmess_aead_invalid_access_count` | `30` | 错误次数 |
@@ -758,6 +798,7 @@ Vision 支持通过 Mux/XUDP 转发 UDP；“底层 TCP”不等于“只能代�
 | `hysteria_server_name`    | 无       | TLS SNI 域名（一般从面板自动获取）                                  |
 | `hysteria_cert_file`      | 无       | TLS 证书文件路径（支持自动申请，配置 cert_domain + cert_mode 即可）       |
 | `hysteria_key_file`       | 无       | TLS 密钥文件路径                                             |
+| `hysteria_ech_server_keys` | 空 | 服务端 ECH keyset，Base64 编码，需包含私钥；支持环境变量及节点 `[USER]`，本地显式值优先；空值可使用面板 `ech_server_keys` / `ech_key`，无效内容阻止启动 |
 | `hysteria_allow_insecure` | `false` | 客户端兼容字段，服务端忽略；自签证书应在客户端配置信任或证书 pin，见 Hy2 文档 |
 | `hysteria_disable_udp`    | `false` | 是否禁用 UDP 转发                                            |
 | `hysteria_masquerade` | 空 | HTTP/3 网站伪装：`proxy/file/string`，支持环境变量及节点 `[USER]`；配置实例见 [Masquerade](hysteria/masquerade.md)（v1.2.9 再次重发新增） |
@@ -972,6 +1013,9 @@ cert_mode=self
 | `node_speed_limit` | `0` | 节点总限速 Mbps，0=不限，Hysteria2 也会生效 |
 | `user_ip_limit_cidr_prefix_v4` | `32` | IPv4 CIDR 前缀，如 `24` 则同 /24 视为同一 IP |
 | `user_ip_limit_cidr_prefix_v6` | `128` | IPv6 CIDR 前缀，作用同上 |
+| `panel_device_admission` | `true` | 面板支持设备准入时（目前为 PPanel v1.21.3+），新来源 IP 先向面板申请设备名额；面板不支持或不可达时自动回退到 Redis / 本地限制。[说明](other/limit-ip-and-device-num.md) |
+
+面板同步到用户 UUID、密码或认证方法变更后，会撤销该用户旧凭据对应的已登记连接；新凭据可重新连接。普通套餐、限速变化不触发踢线。用户删除/禁用的活跃连接仍按原有连续两轮同步宽限处理；凭据变更不使用此宽限。
 
 ### 3.6.2 增强 IP/设备数限制（Redis）
 

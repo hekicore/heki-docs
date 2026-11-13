@@ -68,7 +68,7 @@ hysteria_masquerade={"type":"proxy","proxy":{"url":"https://www.example.com/","r
 hysteria_masquerade={"type":"string","string":{"content":"Node 12 website"}}
 ```
 
-或者在节点 12 写 `hysteria_masquerade={}`，仅让该节点恢复 404。不要修改 `[AUTO]` 区。
+或者在节点 12 写 `hysteria_masquerade={}`，仅让该节点恢复 404。请写在 `[USER]` 标记之后；旧文件的 `[AUTO]` 和 `.runtime/nodes/` 中的启动快照都不是编辑入口。
 
 Docker Compose 的现有服务中可添加：
 

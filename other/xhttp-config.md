@@ -52,6 +52,20 @@ Heki 仍需要该域名的有效服务端证书，可配置手动证书或自动
 
 已安装早期 1.2.9 的用户仍需重新更新安装包，Docker 用户需拉取镜像并重建容器，仅重启旧容器不会得到修复。
 
+## h2Params 与 OPTIONS 上行
+
+`extra` 里可以写 `h2Params`（也接受 `h2_params`）调整服务端 HTTP/2 参数，内容是 Go `net/http` 的 `HTTP2Config` 字段，例如：
+
+```json
+"extra": {
+  "h2Params": {"MaxConcurrentStreams": 128}
+}
+```
+
+只对 TCP 上的 XHTTP（HTTP/1.1、HTTP/2）生效，HTTP/3 不使用。字段类型写错时节点启动报错，不会静默忽略。不清楚用途时不要添加。
+
+`uplinkHTTPMethod` 设为 `OPTIONS` 时，不带 `Access-Control-Request-Method` 的 OPTIONS 请求按上行数据处理；带这个请求头的才是浏览器的 CORS 预检，仍直接返回 200。此前所有 OPTIONS 都被当成预检，这种配置下上行不通。
+
 ## allowInsecure=true 升级后怎么处理
 
 它原本表示“不验证对方证书”。Heki 1.2.9 使用的新版 Xray 不再接受 `downloadSettings.tlsSettings.allowInsecure=true`。只有使用这项下载端 TLS 配置的节点需要迁移，不是所有 Heki 节点都要重新申请证书。

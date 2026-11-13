@@ -9,6 +9,7 @@
 该组合支持 TCP 和 UDP。UDP 经 XUDP/Mux 封装在 TCP 连接内；此前 Heki 缺少 VLESS Mux 入站路径，现已补齐。Vision 账号也兼容客户端使用空 flow 的 UDP/XUDP，但不能通过空 flow 或 Mux TCP 子流绕过 Vision。
 
 当前 heki 已确认支持 XBoard server config 下发的 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp`。
+`ws` 支持客户端通过 `Sec-WebSocket-Protocol` 携带 Base64 early data，前置数据会在后续 WebSocket 帧之前交给 VLESS；此入口的单个合法 Base64 token 按 early data 处理。
 面板下发的 `xhttp` 会在运行时规范化为 `splithttp`，按内置 Xray-core listener 启动，不会静默退回 `tcp`。
 
 如果 XBoard / XiaoV2Board 把 VLESS `flow` 下发成 `none`，heki 会按“未启用 flow”处理，等同于空字符串。只有 `flow=xtls-rprx-vision` 会启用 Vision，并继续要求 `tcp + TLS/Reality`。
@@ -25,6 +26,34 @@ node_id=1
 # 如果你的 XBoard 仍是旧 UniProxy 接口，可手动切回 V1
 # xboard_api_version=1
 ```
+
+### WebSocket early data 示例
+
+在 XBoard 中把 VLESS 节点设为 `network=ws`、路径 `/vless`、`flow=none`（或空字符串），启用普通 TLS 并配置证书。Heki 自动接收 early data，不需要增加服务端开关。WebSocket 不能与 `xtls-rprx-vision` flow 组合；以下示例使用普通 TLS、无额外 VLESS Encryption。
+
+下面是 Mihomo v1.19.34 的客户端节点示例，可放入已有配置的 `proxies` 列表；域名、端口、UUID 和路径须与面板订阅一致：
+
+```yaml
+proxies:
+  - name: heki-vless-ws
+    type: vless
+    server: node.example.com
+    port: 443
+    uuid: 11111111-1111-1111-1111-111111111111
+    flow: ""
+    tls: true
+    servername: node.example.com
+    skip-cert-verify: false
+    network: ws
+    ws-opts:
+      path: /vless
+      headers:
+        Host: node.example.com
+      max-early-data: 2048
+      early-data-header-name: Sec-WebSocket-Protocol
+```
+
+客户端自动编码首段协议数据；不要手动向 `headers` 写入固定的 `Sec-WebSocket-Protocol` 内容。反向代理/CDN 需要支持 WebSocket，并原样转发该请求头。`max-early-data: 0` 可关闭客户端 early data，继续使用普通 WebSocket；它不等同于 TLS 0-RTT。
 
 ### XHTTP / SplitHTTP 配置说明
 

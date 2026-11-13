@@ -1,6 +1,6 @@
 # 多节点 & 多实例部署
 
-heki 支持三种多节点部署方式，按推荐程度排列。
+heki 支持三种部署方式：同一面板、允许一起重启时选单进程多节点；不同面板或需要独立重启时选 systemd 多实例；使用 Docker 时按同样原则选择单容器或多容器。
 
 ---
 
@@ -34,11 +34,11 @@ multi_node_listen_strategy=split
 
 这时 heki 会按 `node_id` 顺序把监听 IP 一一分配出去，不会再让第一个节点把所有 IP 都占掉。
 如果需要给单个节点手动指定监听地址，也可以在对应的 `/etc/heki/nodes/node_xxx.conf` 的 `[USER]` 区写 `listen_addr=...`。
-这套能力除了默认自动拆分，还支持显式切回 `shared` 或强制 `split`，控制粒度会更高。
+这套能力除了默认自动拆分，还支持显式切回 `shared` 或强制 `split`，控制粒度会更高。`split` 按节点列表顺序绑定；`auto` 按同端口节点的处理顺序分配 IP，不同端口会从第一个 IP 开始。调整列表顺序可能改变绑定，需要固定对应关系时请使用节点 `listen_addr`，并核对面板是否下发了优先级更高的具体 `listen_ip`。
 
 ### 混合协议
 
-不同节点可以使用不同协议。主配置中的 `server_type` 是启动探测提示和默认值；节点真实协议会在启动时按面板返回的节点配置自动识别。
+不同节点可以使用不同协议。主配置中的 `server_type` 用于面板协议选择/启动探测，不代表所有节点的当前协议；PPanel 多协议节点会用它选择协议。节点真实协议以启动时解析面板的结果为准。
 
 主配置 `/etc/heki/heki.conf`：
 ```ini
@@ -116,7 +116,7 @@ heki instance add hk-b type=xboard server_type=vless panel_url=https://panel-b.c
 heki instance add hk-a type=xboard server_type=vless panel_url=https://panel-a.com panel_key=key-a node_id=1,2,3 heki_key=auth-a
 ```
 
-`server_type` 是启动探测提示和默认值，节点真正使用的协议仍以面板下发为准。XBoard 已下发的 Mieru `transport` 等协议参数不需要在主配置里重复填写。
+`server_type` 用于面板协议选择/启动探测，PPanel 多协议节点会用它选择协议；节点真正使用的协议以启动解析结果为准。XBoard 已下发的 Mieru `transport` 等协议参数不需要在主配置里重复填写。
 
 创建完成后，`add` 会立即尝试启动实例，但不会自动设置开机自启。确认运行正常后执行：
 
@@ -150,9 +150,9 @@ heki instance node hk-a list
 heki instance log hk-a
 ```
 
-`heki instance status hk-a` 会显示实例状态、开机自启状态、配置文件路径、进程资源占用，以及已经生成的节点协议和监听端口。Proxy Protocol 如果写在节点配置的 `[USER]` 区，状态摘要会显示 `PP=ON`；如果写在实例主配置中，应通过后面的启动日志确认最终生效状态。
+`heki instance status hk-a` 会显示实例状态、开机自启状态、配置文件路径、进程资源占用，以及本次进程的节点启动结果。无法核验当前进程时明确显示“状态未核验”，不使用旧配置补显协议和端口。“已启动”不代表客户端连接已经验证；参数排查可结合启动日志和 `.runtime/nodes/node_<ID>.conf` 快照，注意快照的生成时间。
 
-`heki instance node hk-a list` 中如果显示 `待启动` 或 `运行配置未就绪`，说明节点配置尚未成功从面板拉取。先重启实例，再查看启动日志：
+`heki instance node hk-a list` 中如果显示 `未加载，需重启`，说明主配置启用的节点不在本次启动记录中。重启实例后查看日志；如果显示 `启动失败`，应先按日志修正配置再重启：
 
 ```bash
 heki instance restart hk-a
@@ -165,7 +165,7 @@ heki instance log hk-a
 /etc/heki/hk-a/nodes/node_1.conf
 ```
 
-文件中的 `[AUTO]` 内容来自面板并会在实例启动时更新；本地覆盖项应写在 `[USER]` 标记之后。不要通过修改 `[AUTO]` 区强行改变面板下发的协议。
+此文件只保留 `[USER]` 覆盖项和注释模板。上次成功启动的参数另存于 `/etc/heki/hk-a/.runtime/nodes/node_1.conf`，带生成时间，仅供排查。旧 `[AUTO]` + `[USER]` 文件会在该节点首次成功启动后自动分离，保留用户区。查看主配置默认值摘要用 `heki instance config hk-a`，查看完整原文用 `heki instance config hk-a --raw`；摘要不把全局协议提示当作节点协议。
 
 ### 查看新实例日志
 
@@ -206,7 +206,7 @@ journalctl -u 'heki@hk-a.service' -n 500 --no-pager | grep -F '[Node 1]'
 journalctl -u 'heki@hk-a.service' -n 500 --no-pager | grep -Ei '\[WARN\]|\[ERROR\]|failed|timeout|unknown user'
 
 # 检查协议识别、监听端口和 Proxy Protocol 是否生效
-journalctl -u 'heki@hk-a.service' -n 500 --no-pager | grep -E 'auto-detected config|listening|Config saved|proxy_protocol|Proxy Protocol|failed'
+journalctl -u 'heki@hk-a.service' -n 500 --no-pager | grep -E 'auto-detected config|[Ll]istening|User config|Config saved|proxy_protocol|Proxy Protocol|[Ff]ailed'
 ```
 
 如果使用默认的文件日志配置，命名实例的日志也会按天写入实例目录：
@@ -226,7 +226,7 @@ tail -f /etc/heki/hk-a/$(date +%F).log
 1. 成功获取节点配置或用户列表。
 2. `auto-detected config`，表示面板参数已经转换为运行配置。
 3. `listening`、`Mux is listening` 或相近日志，表示端口已经监听。
-4. `Config saved: /etc/heki/hk-a/nodes/node_1.conf`，表示运行配置保存到了当前实例目录。
+4. `User config: /etc/heki/hk-a/nodes/node_1.conf; startup snapshot: ...`，表示覆盖项与启动快照分别保存到了当前实例目录。
 5. 后续出现用户同步、流量或节点状态上报成功。
 
 下面这些日志本身不是错误：
@@ -377,7 +377,7 @@ heki instance restart hk-a
 heki instance status hk-a
 ```
 
-面板下发的协议参数要以启动后的 `node_*.conf` 和 `auto-detected config` 日志为准，不要只看主配置中的 `server_type`。
+各节点实际协议请查看本次启动日志；排查具体参数可结合带时间的 `.runtime/nodes/node_*.conf` 快照，不要把主配置中的 `server_type` 当成各节点的当前协议。
 
 ### 一台机器运行多个实例的建议
 

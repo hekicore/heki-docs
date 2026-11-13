@@ -20,9 +20,11 @@ systemctl enable docker
 | 支持架构 | `linux/amd64`、`linux/arm64`（自动选择） |
 | 标签 | `hekicore/heki:latest`（正式版）、`hekicore/heki:beta`（测试版）、`hekicore/heki:版本号` |
 
-> 当前稳定版：`v1.2.9`；发布日期：`2026-10-31`。更新时拉取 `hekicore/heki:latest`，或固定 `hekicore/heki:1.2.9`。
+> 当前稳定版：`v1.3.0`；发布日期：`2026-11-14`。更新时拉取 `hekicore/heki:latest`，或固定 `hekicore/heki:1.3.0`。
 
-2026-10-31 最新同版本重发修复 [XHTTP HTTP/3 活跃会话停止卡住](other/xhttp-config.md)，同时包含 [Hy2 网站伪装](hysteria/masquerade.md)、[远程 DNS 定时更新](other/dns-config.md)、[BT 过滤增强](other/bt-filter.md)、[ClickHouse gzip](other/access-log-clickhouse.md) 和 TUIC 首包缓存并发修复。即使已经使用 1.2.9，也需执行 `docker compose pull && docker compose up -d` 获取新镜像；仅重启旧容器不会更新程序。
+1.3.0 包含主副配置分离与诊断、WireGuard 出站、SS UoT、WebSocket early data、Hysteria2 ECH、依赖升级及官方修复。完整内容见 [发布说明](https://github.com/hekicore/heki/releases/tag/v1.3.0)。
+
+升级前备份挂载的完整配置目录和 Compose/环境配置。旧节点文件首次成功启动后会拆分为用户覆盖和 `.runtime/` 启动快照；回退 1.2.9 应先停容器并恢复升级前配置，不能只改镜像标签。详见 [升级与回退](other/upgrade-rollback.md)。更新使用 `docker compose pull` 和 `docker compose up -d`；仅重启容器不会更新镜像或环境变量。
 
 ---
 
@@ -183,10 +185,10 @@ docker pull hekicore/heki:beta
 docker stop heki && docker rm heki
 # 重新执行 docker run 命令，将镜像改为 hekicore/heki:beta
 
-# 切换到指定版本 1.2.9
-docker pull hekicore/heki:1.2.9
+# 切换到指定版本 1.3.0
+docker pull hekicore/heki:1.3.0
 docker stop heki && docker rm heki
-# 重新执行 docker run 命令，将镜像改为 hekicore/heki:1.2.9
+# 重新执行 docker run 命令，将镜像改为 hekicore/heki:1.3.0
 ```
 
 ---
@@ -352,8 +354,8 @@ docker compose pull && docker compose up -d
 # image: hekicore/heki:beta
 docker compose pull && docker compose up -d
 
-# 切换到指定版本 1.2.9：将 docker-compose.yml 中的 image 改为 hekicore/heki:1.2.9
-# image: hekicore/heki:1.2.9
+# 切换到指定版本 1.3.0：将 docker-compose.yml 中的 image 改为 hekicore/heki:1.3.0
+# image: hekicore/heki:1.3.0
 docker compose pull && docker compose up -d
 ```
 

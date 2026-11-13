@@ -33,6 +33,7 @@ node_id=1
 - `base_config.push_interval` / `pull_interval` / `node_report_min_traffic` / `device_online_min_traffic` 会自动接入运行参数
 - 面板 `routes` / `custom_outbounds` / `custom_routes` JSON 现在会自动转换为 heki 本地路由模型；匹配时优先按面板路由执行，未命中再继续匹配本地 `routes_file` / `routes_url`（未显式配置 `routes_file` 时默认回退到同目录 `routes.toml`）
 - 若面板路由里使用了 heki 当前无法承载的字段或出站类型，启动时会明确报出具体规则位置和不支持字段
+- 运行中在面板上修改 `routes` / `custom_outbounds` / `custom_routes` 会在下一个同步周期自动生效，无需重启；新配置无效时保留当前路由并在日志中说明原因
 
 !> Trojan 的 `tls=1` 模式需要证书；如果面板分支返回 `tls=2` 所需的 Reality 字段，则 Reality 模式不需要外部证书。
 

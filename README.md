@@ -8,7 +8,18 @@
 
 [复杂配置实例](heki/config-examples.md) · [Mieru TCP 回收](mieru/xboard-mieru.md#mieru-tcp-连接回收配置) · [XHTTP 证书验证](other/xhttp-config.md)
 
-> 当前稳定版：`v1.2.9`；Docker 推荐标签：`hekicore/heki:latest`；首次发布：`2026-10-31`；最新重发：`2026-11-05`
+> 当前稳定版：`v1.3.0`；Docker 推荐标签：`hekicore/heki:latest`，可固定 `hekicore/heki:1.3.0`；发布日期：`2026-11-14`
+
+## 1.3.0 更新
+
+- **主副配置**：用户覆盖与启动快照分离，新增最终值及来源查看、配置诊断、停用节点配置保留；旧 AUTO+USER 文件成功启动后自动迁移。
+- **功能**：新增用户态 WireGuard 出站、按地址族绑定出口、面板路由/DNS 刷新、SS UoT v1/v2、VMess/VLESS WebSocket early data、Hysteria2 ECH 和 PPanel 设备准入。
+- **兼容与修复**：凭据改变后撤销旧连接，修正 MPTCP 开关，补回 AnyTLS 大帧与关闭期限、Vision 分块、QUIC stream 关闭等官方修复。
+- **依赖与性能**：Xray 更新至 v26.11.9，更新 Reality、KCP、smux 等 9 项依赖；优化 GeoData、VMess 认证与防重放内存、SS2022 UDP 和审计关闭时的开销。
+
+[完整发布说明](https://github.com/hekicore/heki/releases/tag/v1.3.0) · [主副配置说明与示例](heki/heki-config.md) · [升级备份与回退限制](other/upgrade-rollback.md)
+
+升级前备份完整实例配置；回退 1.2.9 应恢复升级前配置，当前没有自动配置回退功能。
 
 ## 🎉 免费版
 
@@ -69,6 +80,7 @@
 
 - [流量上报与服务器计费](other/traffic-accounting.md)
 - [多路由多出口负载均衡](other/routes-config.md)（含 XBoard / XiaoV2Board 面板运行时路由格式支持说明）
+- [WireGuard 出口](other/wireguard-outbound.md)（配置对照、分流 / 批量 / 面板下发示例与排障）
 - [多节点 & 多实例部署](other/heki-multi-instance.md)
 - [多 IP 自动选择出口（源进源出）](other/auto-out-ip.md)
 - [DNS 解析配置](other/dns-config.md)

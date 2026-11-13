@@ -1,5 +1,7 @@
 # V2board / xiaov2board 对接 vless
 
+> XiaoV2Board：节点从 TLS 改成 Reality 或无 TLS 后，面板的 `tls_settings` 里可能还留着 `cert_mode=remote`，但不再带证书（面板只为 `tls=1` 的节点签发远程证书）。Heki 会忽略这种残留值，节点正常启动；`tls=1` 且 `cert_mode=remote` 却没有证书时仍会报错，需要在面板重新保存节点让它生成证书。
+
 !> 原版 V2Board 的实际兼容性取决于面板分支返回的 API 字段。若你的面板未返回 VLESS / Reality 所需字段，建议优先使用 XBoard / PPanel。
 !> 已适配的 `xiaov2board` `v2node` 分支可下发 `listen_ip`、`base_config`、`routes`、`encryption_settings` 等字段，heki 会按当前支持范围接入。
 
@@ -36,6 +38,7 @@ Reality 模式不需要外部证书；若你的面板分支下发的是普通 TL
 - `base_config.push_interval` / `pull_interval` / `node_report_min_traffic` / `device_online_min_traffic` 会自动接入运行参数
 - 面板 `routes` / `custom_outbounds` / `custom_routes` JSON 现在会自动转换为 heki 本地路由模型；匹配时优先按面板路由执行，未命中再继续匹配本地 `routes_file` / `routes_url`（未显式配置 `routes_file` 时默认回退到同目录 `routes.toml`）
 - 若面板路由里使用了 heki 当前无法承载的字段或出站类型，启动时会明确报出具体规则位置和不支持字段
+- 运行中在面板上修改 `routes` / `custom_outbounds` / `custom_routes` 会在下一个同步周期自动生效，无需重启；新配置无效时保留当前路由并在日志中说明原因
 
 ### VLESS Encryption 服务端入口
 

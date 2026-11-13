@@ -5,6 +5,7 @@
   * [安装与配置](heki/heki-config.md)
   * [复杂配置实例](heki/config-examples.md)
   * [Docker 部署](docker/docker-tutorial.md)
+  * [升级与回退](other/upgrade-rollback.md)
 
 * [协议对接](#)
   * [VMess / V2Ray](#)
@@ -13,6 +14,7 @@
     * [V2Board](v2ray/v2board-v2ray.md)
     * [PPanel](v2ray/ppanel-v2ray.md)
   * [VLESS](#)
+    * [SSPanel](vless/sspanel-vless.md)
     * [XBoard](vless/xboard-vless.md)
     * [V2Board](vless/v2board-vless.md)
     * [PPanel](vless/ppanel-vless.md)
@@ -37,6 +39,7 @@
     * [PPanel](anytls/ppanel-anytls.md)
   * [Hysteria2](#)
     * [网站伪装 Masquerade](hysteria/masquerade.md)
+    * [SSPanel](hysteria/sspanel-hysteria.md)
     * [XBoard](hysteria/xboard-hysteria.md)
     * [V2Board](hysteria/v2board-hysteria.md)
     * [PPanel](hysteria/ppanel-hysteria.md)
@@ -67,6 +70,7 @@
   * [MPTCP](other/mptcp.md)
   * [源进源出（多 IP）](other/auto-out-ip.md)
   * [多路由多出口负载均衡](other/routes-config.md)
+  * [WireGuard 出口](other/wireguard-outbound.md)
 
 * [用户与限制](#)
   * [增强 IP/设备数限制](other/limit-ip-and-device-num.md)

@@ -28,6 +28,7 @@ systemctl restart ntp
 非常简单，教程省略。
 
 当前 heki 已确认支持 XBoard 下发的 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp`。
+`ws` 支持客户端通过 `Sec-WebSocket-Protocol` 携带 Base64 early data，前置数据会在后续 WebSocket 帧之前交给 VMess；此入口的单个合法 Base64 token 按 early data 处理。
 面板下发的 `xhttp` 会在运行时规范化为 `splithttp`，按内置 Xray-core listener 启动，不会静默退回 `tcp`。
 
 ## 第二步，配置 heki
@@ -42,6 +43,33 @@ node_id=1
 # 如果你的 XBoard 仍是旧 UniProxy 接口，可手动切回 V1
 # xboard_api_version=1
 ```
+
+### WebSocket early data 示例
+
+在 XBoard 中把 VMess 节点设为 `network=ws`、路径 `/vmess`、启用 TLS 并配置证书。Heki 的 VMess WebSocket 入口自动接收 early data，不需要增加服务端开关。下面是 Mihomo v1.19.34 的客户端节点示例，可放入已有配置的 `proxies` 列表；域名、端口、UUID 和路径须与面板订阅一致：
+
+```yaml
+proxies:
+  - name: heki-vmess-ws
+    type: vmess
+    server: node.example.com
+    port: 443
+    uuid: 11111111-1111-1111-1111-111111111111
+    alterId: 0
+    cipher: auto
+    tls: true
+    servername: node.example.com
+    skip-cert-verify: false
+    network: ws
+    ws-opts:
+      path: /vmess
+      headers:
+        Host: node.example.com
+      max-early-data: 2048
+      early-data-header-name: Sec-WebSocket-Protocol
+```
+
+此例使用 VMess AEAD（`alterId: 0`），节点最终认证模式也须允许 AEAD。客户端自动编码首段协议数据；不要手动向 `headers` 写入固定的 `Sec-WebSocket-Protocol` 内容。反向代理/CDN 需要支持 WebSocket，并原样转发该请求头。`max-early-data: 0` 可关闭客户端 early data，继续使用普通 WebSocket。这里的 early data 是 WebSocket 握手头携带数据，不是 TLS 0-RTT。
 
 ### XHTTP / SplitHTTP 配置说明
 
@@ -86,6 +114,7 @@ node_id=1
 - `base_config.push_interval` / `pull_interval` / `node_report_min_traffic` / `device_online_min_traffic` 会自动接入运行参数
 - 面板 `routes` / `custom_outbounds` / `custom_routes` JSON 现在会自动转换为 heki 本地路由模型；匹配时优先按面板路由执行，未命中再继续匹配本地 `routes_file` / `routes_url`（未显式配置 `routes_file` 时默认回退到同目录 `routes.toml`）
 - 若面板路由里使用了 heki 当前无法承载的字段或出站类型，启动时会明确报出具体规则位置和不支持字段
+- 运行中在面板上修改 `routes` / `custom_outbounds` / `custom_routes` 会在下一个同步周期自动生效，无需重启；新配置无效时保留当前路由并在日志中说明原因
 - 对 XBoard V2，如果 `config` 响应缺少 `protocol`，heki 会先按 payload 特征推断；无法安全判断时直接报错，避免误判协议
 
 !> 若启用 tls 则必须要配置证书！！！

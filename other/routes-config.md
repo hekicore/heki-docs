@@ -28,6 +28,29 @@ routes 用于将入口节点收到的用户流量，按规则转发到不同的�
 ## 配置文件自动重载
 纯本地模式下（未配置 `routes_url`），修改本地 `routes.toml` 时，heki 会每 10 秒自动检测文件变更并重载规则，无需重启；新规则加载完成后会立即参与转发匹配
 
+## 路由优先级
+
+一条连接按下面的顺序匹配，命中即停止：
+
+1. 面板下发的运行时路由（`routes` / `custom_routes`）
+2. `routes_url` 远程路由，或本地 `routes_file`
+
+第 2 层只有一份规则在生效：配置了 `routes_url` 就用远程内容，本地 `routes_file` 只在远程不可用时作为回退源，两者不会叠加匹配。
+
+| 来源 | 生效方式 | 是否需要重启 |
+|------|----------|--------------|
+| 面板 `routes` / `custom_outbounds` / `custom_routes` / DNS 规则 | 每个用户同步周期（`check_interval`，面板下发 `pull_interval` 时以面板为准）重新拉取，有变化时原地替换 | 否 |
+| `routes_url` | 每 1 分钟刷新 | 否 |
+| 本地 `routes_file` | 每 10 秒检测文件变更 | 否 |
+
+> 面板路由热加载只影响之后新建的连接，已建立的连接继续使用原出口直到结束。
+>
+> 热加载的范围是路由、出口和 DNS 规则。节点的协议、端口、传输层、加密方式、证书等监听参数在面板上修改后仍需重启 heki。
+>
+> 面板新配置会先整体校验（例如引用了不存在的出口 tag、出口缺少必填字段），校验失败时保留当前生效的路由，并在日志里打印一次 `[WARN] ... the new config was rejected` 及原因；面板请求失败时同样保留当前路由。
+>
+> 例外：如果节点启动时没有任何首包检查规则（面板 `action=protocol`、本地 `protocol:xxx`、`forbidden_bt`、`detect_packet` 都没有），运行中在面板上新增的 `action=protocol` 规则需要重启才会执行，日志会给出提示。其余规则和出口不受此限制。
+
 ## 远程加载配置文件
 | 参数名           | 默认值 | 说明 |
 |---------------|--------|------|
@@ -52,19 +75,20 @@ routes 用于将入口节点收到的用户流量，按规则转发到不同的�
 | ss       | 大多数加密均支持，不支持插件                               |
 | ssr      | 大多数加密、协议、混淆均支持                               |
 | anytls   | AnyTLS，TCP over TLS                         |
+| wireguard | WireGuard，用户态实现，不创建系统网卡，TCP / UDP 均可；[使用说明](other/wireguard-outbound.md) |
 | socks    | 带用户名和密码或不带均可                                 |
 | http     | 带用户名和密码或不带均可                                 |
 | redirect | 将用户访问的地址+端口重定向到指定的地址+端口                      |
 
 > 本地路由文件默认路径为 `heki.conf` 同目录下的 `routes.toml`；若配置了 CLI `-r` 或 `routes_file`，则按指定路径读取。若本地文件与 `routes_url` 都未启用，则默认直连。
 
-!> `routes.toml` 的出口类型也会兼容常见别名：`freedom -> direct`、`socks5 -> socks`、`shadowsocks -> ss`、`reject -> block`。
+!> `routes.toml` 的出口类型也会兼容常见别名：`freedom -> direct`、`socks5 -> socks`、`shadowsocks -> ss`、`reject -> block`、`wg -> wireguard`。
 
 !> `routes` 不是 V2Ray/Xray 的 `outbounds` / `routing` 格式，不支持 `[[outbounds]]`、`protocol="freedom"`、`protocol="shadowsocks"`、`[routing]`、`[[routing.rules]]`、`network="tcp,udp"` 这类写法。
 
 !> 本地 `routes_file` / `routes_url` 支持 `protocol:xxx` 首包协议规则，但它只用于拦截，`不参与普通路由分流`。这类路由的出口必须是 `block/reject`，且不能和 `domain/ip/port` 等普通规则混写。
 
-> TCP 和 UDP 共用同一路由匹配逻辑，不需要单独写 `network="tcp,udp"`。`http` 出口不支持 UDP；`direct`、`redirect`、`socks`、`ss`、`vmess`、`trojan`、`ssr`、`anytls`、`vless` 均可用于 UDP。VLESS Vision 在 `tcp + tls` 或 `tcp + reality` 上传输 XUDP，因此底层传输为 TCP 也可以转发 UDP 数据报。
+> TCP 和 UDP 共用同一路由匹配逻辑，不需要单独写 `network="tcp,udp"`。`http` 出口不支持 UDP；`direct`、`redirect`、`socks`、`ss`、`vmess`、`trojan`、`ssr`、`anytls`、`vless`、`wireguard` 均可用于 UDP。VLESS Vision 在 `tcp + tls` 或 `tcp + reality` 上传输 XUDP，因此底层传输为 TCP 也可以转发 UDP 数据报。
 
 > “无匹配则关闭连接”描述的是本地 `routes_file` / `routes_url`。对于 XBoard / XiaoV2Board 面板下发的运行时路由，heki 会先匹配面板路由；若未命中，再继续匹配本地路由。若本地路由也未启用，且面板没有提供默认出站规则，heki 才会对未命中流量使用最终 `direct` 兜底。
 
@@ -90,10 +114,12 @@ routes 用于将入口节点收到的用户流量，按规则转发到不同的�
 
 ### `custom_outbounds[]`
 
-- 类型：`direct`、`redirect`、`socks`、`http`、`ss`、`ssr`、`trojan`、`vmess`、`vless`、`anytls`、`block`、`dns`
+- 类型：`direct`、`redirect`、`socks`、`http`、`ss`、`ssr`、`trojan`、`vmess`、`vless`、`anytls`、`wireguard`、`block`、`dns`
 - 常见别名会自动归一化，如 `freedom -> direct`、`socks5 -> socks`、`reject -> block`
 - `vmess` / `vless` 支持 `tcp`、`ws`、`http`、`h2`、`grpc`
 - `trojan` / `anytls` 仅支持 `tcp`；`vless + reality` 也仅支持 `tcp`
+- 出口对象顶层可写 `listen_ipv4` / `listen_ipv6` / `listen_strategy`，含义见下文「出口地址绑定」一节
+- `wireguard` 接受 heki 平铺字段，也接受 sing-box（`local_address` + `peer_public_key`，或 `address` + `peers[]`）和 Xray（`settings.secretKey` + `settings.peers[].endpoint`）的写法，示例见 [WireGuard 出口](other/wireguard-outbound.md)
 
 ### `custom_routes[]`
 
@@ -174,6 +200,55 @@ type="direct"
 listen="" # 出口网卡 ip，不配置则由系统决定
 type="direct"
 ```
+
+#### 出口地址绑定
+
+`listen` 只能填一个 IP，也就只能绑定一个地址族。双栈服务器上想让 IPv4 目标从某个 IPv4 地址出、IPv6 目标从某个 IPv6 地址出，并指定两族都可用时走哪一族，使用下面三个字段：
+
+| 字段 | 默认值 | 说明 |
+|------|--------|------|
+| `listen_ipv4` | 无 | 连接 IPv4 地址时绑定的本地 IPv4；不配置则由系统决定 |
+| `listen_ipv6` | 无 | 连接 IPv6 地址时绑定的本地 IPv6；不配置则由系统决定 |
+| `listen_strategy` | `ipv4_first` | 两族都可用时用哪一族：`ipv4_first` / `ipv4_only` / `ipv6_first` / `ipv6_only`。只配置了 `listen_ipv6` 而没配 `listen_ipv4` 时默认 `ipv6_first` |
+
+```
+type="direct"
+listen_ipv4="203.0.113.10"
+listen_ipv6="2001:db8::10"
+listen_strategy="ipv6_first"
+```
+
+- 三个字段都不写时行为与之前完全一致，旧配置不需要改动。写了任意一个即启用。
+- 适用于 `direct`、`redirect`、`socks`、`http`、`ss`、`ssr`、`trojan`、`vmess`、`vless`、`anytls`；`wireguard` 出口不支持（隧道内的地址由 `address` 决定）。
+- **`direct` / `redirect`**：决定连接目标时使用的地址族和本地地址。
+  - 目标是域名：按 heki 的解析顺序（[DNS 规则](other/dns-config.md) > `default_dns` > 系统 DNS）取得全部地址，再按 `listen_strategy` 选择。此时由 `listen_strategy` 决定地址族，DNS 规则和 `dns_strategy` 里的 strategy 对这个出口不生效。
+  - 目标本身是 IP：只能使用它所属的那一族；被 `ipv4_only` / `ipv6_only` 排除时连接失败，日志里会写明 `excluded by listen_strategy`。
+- **代理类出口**：作用于连到代理服务器（`server`）的那条连接，即 `server` 域名解析后选哪一族、从哪个本地地址连过去。用户目标由代理服务器负责解析和连接，不受这三个字段影响。
+- **`ipv4_first` / `ipv6_first` 的回退**：TCP 先连优先的一族，300ms 内没连上或连接失败时并行尝试另一族，谁先连上用谁（Happy Eyeballs）。UDP 没有连接建立过程，无法探测可达性，直接使用优先族的地址，不会回退。
+- **与 `listen` 的关系**：`listen` 仍然可用。和新字段一起写时，`listen` 视为它所属地址族的写法（IPv4 地址等同 `listen_ipv4`，IPv6 地址等同 `listen_ipv6`）；与同族的新字段取值不同时会报错。
+- **与 `auto_out_ip` 的关系**（仅 `direct`）：显式配置的地址优先；没有显式配置的那一族在开启 `auto_out_ip` 时使用入口连接的本地 IP。
+- 面板 `custom_outbounds` 里写在出口对象顶层，字段名相同（也接受 `listenIPv4` / `listenIPv6` / `listenStrategy`）。
+- 配置有误（例如 `listen_ipv4` 填了 IPv6 地址、`listen_strategy` 取值不对）时，加载路由会报错并指出是哪条路由的哪个出口。
+
+只走 IPv6 出口、目标没有 IPv6 就拒绝：
+
+```
+type="direct"
+listen_ipv6="2001:db8::10"
+listen_strategy="ipv6_only"
+```
+
+IPv4 优先、两族各用指定的出口地址，经 SOCKS5 代理：
+
+```
+type="socks"
+server="proxy.example.com"
+port=1080
+listen_ipv4="203.0.113.10"
+listen_ipv6="2001:db8::10"
+```
+
+!> 出口里写了 heki 不认识的字段时（拼写错误，或其它软件的字段名），加载本地 / 远程路由会打印一次 `[WARN] Routes: ... has unrecognized field(s) ...; they are ignored`，该字段不会生效。
 
 #### vmess
 ```
@@ -350,6 +425,36 @@ skip_cert_verify=false
 ```
 
 !> AnyTLS 支持 UDP 出站，底层使用 udp-over-tcp（UoT）封装。
+
+#### wireguard
+```
+type="wireguard"
+# 对端（WireGuard 服务器）地址和端口，对应 wg 配置里的 Endpoint
+server="wg.example.com"
+port=51820
+# 本端私钥，对应 [Interface] PrivateKey
+private_key="eBBDDuGXxQXPuoLynRrlE09qjsf/JNLIu0akFktNTX8="
+# 对端公钥，对应 [Peer] PublicKey
+public_key="rulahMx/Wx+NaGt/GGzIu4YUHhFa+HlBFpVzb7/vCjs="
+# 本端隧道地址，对应 [Interface] Address；双栈写成 "10.66.0.2/32,fd00::2/128" 或数组
+address="10.66.0.2/32"
+
+# 以下均为可选
+# 预共享密钥，对应 [Peer] PresharedKey
+pre_shared_key=""
+# 默认 1420
+mtu=1420
+# 保活间隔（秒），对应 PersistentKeepalive；默认不发送
+keepalive=25
+# 3 个保留字节，Cloudflare WARP 等服务需要；写成 "1,2,3" 或 3 字节的 base64
+reserved=""
+# 隧道内使用的 DNS，对应 [Interface] DNS；留空则由 heki 解析后再经隧道连接
+dns="1.1.1.1"
+```
+
+!> 示例密钥为演示值，请替换。用户态实现，不创建系统网卡、不需要 root，TCP / UDP 均可，可同时配置多个 WireGuard 出口。
+
+完整的使用说明（从 wg 配置文件转换、自建服务器、分流 / 负载均衡 / 远程批量 / 面板下发示例、排障）见 [WireGuard 出口](other/wireguard-outbound.md)。
 
 #### ss
 支持传统 AEAD 和 SS2022，不支持插件。

@@ -22,8 +22,6 @@ systemctl enable docker
 
 > 当前稳定版：`v1.3.1`；发布日期：`2026-11-22`。更新时拉取 `hekicore/heki:latest`，或固定 `hekicore/heki:1.3.1`。
 
-1.3.1 修复 VMess 多目标 XUDP、大块下载和 TUIC 大 UDP 回包，新增可选 WS 主动心跳，完善流量上报自动恢复、旧面板兼容与协议稳定性。完整内容见 [发布说明](https://github.com/hekicore/heki/releases/tag/v1.3.1)。
-
 升级前备份挂载的完整配置目录和 Compose/环境配置。旧节点文件首次成功启动后会拆分为用户覆盖和 `.runtime/` 启动快照；回退 1.2.9 应先停容器并恢复升级前配置，不能只改镜像标签。详见 [升级与回退](other/upgrade-rollback.md)。更新使用 `docker compose pull` 和 `docker compose up -d`；仅重启容器不会更新镜像或环境变量。
 
 流量状态目录需要可写且持久化；默认使用实例配置目录，只读配置挂载需另设 `ip_user_cache_save_dir`，见 [流量上报](other/traffic-accounting.md)。WS 心跳默认关闭，需要时设置 `ws_heartbeat: "30"`，见 [XUDP 与 WS 保活](other/xudp-ws.md)。Docker 继续使用镜像更新方式。

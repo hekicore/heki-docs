@@ -55,7 +55,6 @@ proxies:
     server: node.example.com
     port: 443
     uuid: 11111111-1111-1111-1111-111111111111
-    alterId: 0
     cipher: auto
     tls: true
     servername: node.example.com
@@ -69,7 +68,7 @@ proxies:
       early-data-header-name: Sec-WebSocket-Protocol
 ```
 
-此例使用 VMess AEAD（`alterId: 0`），节点最终认证模式也须允许 AEAD。客户端自动编码首段协议数据；不要手动向 `headers` 写入固定的 `Sec-WebSocket-Protocol` 内容。反向代理/CDN 需要支持 WebSocket，并原样转发该请求头。`max-early-data: 0` 可关闭客户端 early data，继续使用普通 WebSocket。这里的 early data 是 WebSocket 握手头携带数据，不是 TLS 0-RTT。
+此例使用 VMess AEAD（省略 `alterId` 字段），节点最终认证模式也须允许 AEAD。客户端自动编码首段协议数据；不要手动向 `headers` 写入固定的 `Sec-WebSocket-Protocol` 内容。反向代理/CDN 需要支持 WebSocket，并原样转发该请求头。`max-early-data: 0` 可关闭客户端 early data，继续使用普通 WebSocket。这里的 early data 是 WebSocket 握手头携带数据，不是 TLS 0-RTT。
 
 ### XHTTP / SplitHTTP 配置说明
 
@@ -128,3 +127,7 @@ heki start
 ```
 
 若出现启动失败的情况，使用 `heki log` 查看错误信息。
+
+### XUDP 与空闲保活
+
+VMess/VLESS 的 XUDP 由客户端选择，无需服务端开关。WS 主动心跳可通过 `ws_heartbeat=30` 按需开启，默认关闭。配置、客户端示例和超时边界见 [XUDP 与 WebSocket 保活](other/xudp-ws.md)。

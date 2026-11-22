@@ -256,6 +256,7 @@ pprof_addr=off
 | `proxy_protocol` | `false` | 是否启用 proxy protocol；Mieru TCP 也支持 |
 | `udp_proxy_protocol` | `false` | 是否接收 UDP proxy protocol 头（ss/ssr/mieru UDP 可用） |
 | `force_proxy_protocol` | `false` | 是否强制 proxy protocol |
+| `ws_heartbeat` | `0` | VMess/VLESS WS 主动 Ping 间隔，秒，`0` 关闭，范围 `0..86400`；节点不填写时继承主配置 |
 | `force_close_ssl` | `false` | 关闭 heki TLS 处理，由外部 nginx 等处理 |
 | `cert_file` | 无 | 节点独立证书文件路径 |
 | `key_file` | 无 | 节点独立私钥文件路径 |
@@ -509,6 +510,7 @@ heki 支持在同一实例中运行不同协议类型的节点。节点实际协
 | `listen_port` | `443` | 默认监听端口，一般由面板下发 |
 | `multi_node_listen_strategy` | `auto` | 多节点监听策略：`auto` 会对同端口节点自动拆分监听 IP，兼容常见旧配置直接迁移；`shared` 为每个节点沿用整组 `listen` 地址；`split` 会按 `node_id` 顺序把多 IP 逐个分配给节点 |
 | `tcp_timeout` | `120` | 空闲 TCP 超时，单位分钟，0=不超时 |
+| `ws_heartbeat` | `0` | VMess/VLESS WebSocket 主动 Ping 间隔，秒，`0` 关闭，范围 `0..86400`；按需建议 `30`，支持节点覆盖，见 [XUDP 与 WS 保活](other/xudp-ws.md) |
 | `udp_timeout` | `2` | 空闲 UDP 超时，单位分钟，`0` 表示回退到协议默认值（当前为 2 分钟） |
 | `mptcp` | `false` | 是否开启 MPTCP 监听。为 `false` 时监听端口明确关闭 MPTCP |
 
@@ -1107,7 +1109,7 @@ cert_mode=self
 | `submit_interval` | `60` | 提交数据间隔，秒 |
 | `force_close_ssl` | `false` | 关闭 heki TLS，由外部 nginx 等处理 |
 | `forbidden_bit_torrent` | `true` | 拦截可识别的 BT 流量，不能保证封锁加密 BT；覆盖范围与排查见 [BT 过滤](other/bt-filter.md) |
-| `auto_update` | `false` | 每天自动检查更新稳定版 |
+| `auto_update` | `false` | 每天自动检查稳定版；适用于受支持的 systemd 安装，详见下方说明 |
 | `log_level` | `info` | 日志等级：`debug`/`info`/`warn`/`error` |
 | `log_file_dir` | `/etc/heki/` | 日志目录，空或 `false` 不保存文件 |
 | `log_file_retention_days` | `7` | 日志保留天数，0=永久 |
@@ -1135,6 +1137,24 @@ cert_mode=self
 | `detect_packet_max_len` | `4096` | 检测最大长度（字节） |
 | `submit_alive_ip_min_traffic` | `0` | 在线 IP 上报阈值流量，单位 KB。仅当用户在当前上报周期内流量达到该阈值时，才上报其在线 IP |
 | `submit_traffic_min_traffic`  | `0` | 流量上报阈值，单位 KB。当前上报周期内流量低于该值的用户不提交流量数据 |
+
+### 自动更新的适用范围
+
+`auto_update` 默认关闭。按需在主配置中开启：
+
+```ini
+auto_update=true
+```
+
+适用于标准 `heki.service` 或 `heki@<实例名>.service`，需要 systemd 支持 `systemd-run --collect` 和 `Type=exec`（systemd 240 及以上），并具有创建更新任务、写入程序目录和重启服务的权限。更新任务独立运行，下载后验证发布签名与摘要，再替换程序；当前运行且使用同一程序文件的实例会一起重启，连接会短暂中断。不同程序路径的实例互不影响。
+
+新程序启动后观察进程状态与 PID 稳定性 10 秒；启动失败或在该窗口内退出时恢复旧程序并重新启动这些实例。失败版本会被记录，避免恢复旧版后循环尝试同一版本；发现后续新版本时继续检查，也可使用 `heki update <版本号>` 手动安装。详细过程可按日志给出的命令查看，例如：
+
+```bash
+journalctl -u 'heki-update-*' --no-pager -n 100
+```
+
+这项检查判断进程是否稳定运行，不代替各协议的实际连通性监控；它只回滚程序，不自动恢复配置。升级前仍建议备份配置。缺少受信任发布公钥、签名、systemd 支持或必要权限时不会直接替换程序。Docker、OpenRC 或直接运行程序的部署继续使用对应的镜像更新或安装命令。
 
 > `force_close_ssl` 适用于 TCP 协议（vmess/vless/trojan/anytls 等），不适用于 QUIC 协议（hysteria/tuic）。Naive 当前内置实现需要 HTTP/2 over TLS，通常不要开启该项。
 >

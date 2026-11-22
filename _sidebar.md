@@ -13,6 +13,7 @@
     * [XBoard](v2ray/xboard-v2ray.md)
     * [V2Board](v2ray/v2board-v2ray.md)
     * [PPanel](v2ray/ppanel-v2ray.md)
+  * [XUDP 与 WebSocket 保活](other/xudp-ws.md)
   * [VLESS](#)
     * [SSPanel](vless/sspanel-vless.md)
     * [XBoard](vless/xboard-vless.md)

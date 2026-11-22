@@ -124,3 +124,7 @@ heki start
 ```
 
 若出现启动失败的情况，使用 `heki log` 查看错误信息。
+
+### XUDP 与空闲保活
+
+VMess/VLESS 的 XUDP 由客户端选择，无需服务端开关。WS 主动心跳可通过 `ws_heartbeat=30` 按需开启，默认关闭。配置、客户端示例和超时边界见 [XUDP 与 WebSocket 保活](other/xudp-ws.md)。

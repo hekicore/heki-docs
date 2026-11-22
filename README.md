@@ -8,7 +8,11 @@
 
 [复杂配置实例](heki/config-examples.md) · [Mieru TCP 回收](mieru/xboard-mieru.md#mieru-tcp-连接回收配置) · [XHTTP 证书验证](other/xhttp-config.md)
 
-> 当前稳定版：`v1.3.0`；Docker 推荐标签：`hekicore/heki:latest`，可固定 `hekicore/heki:1.3.0`；发布日期：`2026-11-14`
+> 当前稳定版：`v1.3.1`；Docker 推荐标签：`hekicore/heki:latest`，可固定 `hekicore/heki:1.3.1`；发布日期：`2026-11-22`
+
+1.3.1 修复 VMess 多目标 XUDP 与大块下载，新增可选 WS 心跳；完善流量上报自动恢复、旧面板兼容、SS/TUIC/AnyTLS/H2 稳定性及升级保护。
+
+[完整发布说明](https://github.com/hekicore/heki/releases/tag/v1.3.1) · [XUDP 与 WS 保活](other/xudp-ws.md) · [流量上报与自动恢复](other/traffic-accounting.md)
 
 ## 🎉 免费版
 

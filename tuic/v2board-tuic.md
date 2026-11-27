@@ -1,13 +1,13 @@
-# V2board / xiaov2board 对接 TUIC V5
+# V2Board / XiaoV2Board 对接 TUIC V5
 
 !> 原版 V2Board 的实际兼容性取决于面板分支返回的 API 字段。若你的面板未返回 TUIC 所需字段，建议优先使用 XBoard / PPanel。
 !> 已适配的 `xiaov2board` `v2node` 分支可下发 `listen_ip`、`zero_rtt_handshake`、`congestion_control`、`auth_timeout`、`heartbeat` 等字段。
 
-# 第一步，在面板添加一个节点
+## 第一步，在面板添加一个节点
 
 在面板中添加 TUIC 节点。
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
 !> TUIC V5 基于 QUIC/UDP 协议，必须配置 TLS 证书！
 
@@ -50,7 +50,7 @@ node_id=1
 # tuic_max_conn_window=15
 ```
 
-### xiaov2board 对接补充
+### XiaoV2Board 对接补充
 
 - `xiaov2board` 显式下发的具体 `listen_ip` 会作为节点监听地址输入；若返回 `0.0.0.0 / ::` 这类通配地址，heki 会视为默认值而忽略
 - `zero_rtt_handshake`、`congestion_control`、`server_name`、`auth_timeout`、`heartbeat` 会自动接入 TUIC 运行配置；例如面板显式下发 `congestion_control=bbr` 时，heki 会直接按 `bbr` 启动
@@ -60,7 +60,7 @@ node_id=1
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start

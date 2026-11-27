@@ -2,7 +2,7 @@
 
 把命中规则的流量通过 WireGuard 隧道送出去。heki 内置用户态 WireGuard，不需要在节点上安装 `wireguard-tools`、不创建系统网卡、不需要 root，也不改系统路由表。
 
-以前的做法是本机再跑一个 mihomo / sing-box 连 WireGuard，heki 用 `socks` 出口接过去。现在直接写 `type="wireguard"` 即可，本地 `routes.toml`、远程 `routes_url`、面板 `custom_outbounds` 三处都能用。
+直接写 `type="wireguard"` 即可，本地 `routes.toml`、远程 `routes_url`、面板 `custom_outbounds` 三处都能使用，无需在本机额外运行 mihomo 或 sing-box。
 
 !> 本页示例里的密钥是为了让示例可以直接通过校验而生成的演示值，请全部替换成你自己的。
 
@@ -211,7 +211,7 @@ address="10.66.0.3/32"
 
 !> 远程文件里有私钥，请只通过 HTTPS 提供，并限制谁能访问这个地址。
 
-### 示例 5：面板下发（XBoard / XiaoV2Board / PPanel / heki-v1）
+### 示例 5：面板下发（XBoard / XiaoV2Board / PPanel / Heki-v1）
 
 在面板的 `custom_outbounds` 里定义出口，再用路由规则引用它的 `tag`。节点收到的配置形如：
 

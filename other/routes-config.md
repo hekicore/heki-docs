@@ -402,7 +402,7 @@ skip_cert_verify=false
 !> Reality 模式不会走传统证书校验，`skip_cert_verify` 对该模式无实际作用；保留该字段只是为了让示例格式与普通 TLS 出站保持一致。
 !> 若已填写 `reality_*` 字段，即使未显式写 `security="reality"`，当前实现也会按 Reality 处理；但仍建议显式写出 `security`，避免歧义。
 
-#### trojan
+#### Trojan
 ```
 listen=""
 type="trojan"
@@ -413,7 +413,7 @@ sni="xxx.com"
 skip_cert_verify=false
 ```
 
-#### anytls
+#### AnyTLS
 ```
 listen=""
 type="anytls"

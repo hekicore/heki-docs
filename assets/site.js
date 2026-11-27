@@ -1,4 +1,4 @@
-var docsVersion = '1.2.7-20261004';
+var docsVersion = '1.3.1-b1566ced68f5';
 
 function goHome(event) {
   if (event) {
@@ -247,7 +247,7 @@ window.$docsify = {
         patchNavActiveState();
       });
       hook.afterEach(function(html) {
-        return html + '<div style="text-align:center;padding:2rem 0;margin-top:3rem;border-top:1px solid #eee;color:#999;font-size:13px">Heki © 2026</div>';
+        return html + '<div style="text-align:center;padding:2rem 0;margin-top:3rem;border-top:1px solid #eee;color:#666;font-size:13px">Heki © 2026</div>';
       });
     }
   ]

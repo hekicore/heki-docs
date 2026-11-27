@@ -50,7 +50,7 @@ mieru_tcp_idle_timeout=0
 ```yaml
 services:
   heki:
-    image: hekicore/heki:1.2.9
+    image: hekicore/heki:1.3.1
     restart: unless-stopped
     network_mode: host
     environment:

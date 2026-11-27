@@ -1,6 +1,10 @@
-# heki-v1 参考后端与联调
+# Heki-v1 参考后端与联调
 
-> 文档入口： [WebAPI 文档](heki-v1-webapi.md) | [参考后端](heki-v1-example-server.md) | <a href="panel/heki-v1.openapi.yaml" target="_blank" rel="noopener">OpenAPI 规范</a>
+**文档入口**
+
+- [WebAPI 文档](heki-v1-webapi.md)
+- [参考后端](heki-v1-example-server.md)
+- [OpenAPI 规范](panel/heki-v1.openapi.yaml)
 
 ## 1. 它是什么
 

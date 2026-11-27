@@ -1,14 +1,11 @@
-# Xboard 对接 Shadowsocks
+# XBoard 对接 Shadowsocks
 
 > 使用 ss 密码单端口必看: [ss 密码单端口优化](other/ss-aead.md)
 
-`v1.2.9` 同步 Shadowsocks 上游帧长度校验及用户热更新并发修复，保留 SS / SS2022 加密、nonce、chunk 和 UDP session 格式；XiaoV2Board V2 config / v2node 数据端点兼容保持不变。
-
-
-`v1.3.0` 新增 SS AEAD / SS2022 UoT v1/v2，并优化用户认证查找和 SS2022 UDP 会话缓存；普通 SS/SS2022 加密、nonce、chunk 与 UDP session 格式保持不变。客户端需要自行支持并启用 UoT，见本文 ShadowTLS 使用说明中的 `udp_over_tcp` 配置。
+Heki 支持 SS / SS2022 的帧长度校验、用户热更新、UoT v1/v2 和 XiaoV2Board V2 config / v2node 数据端点。客户端需要自行支持并启用 UoT，通用说明见 [Shadowsocks UoT v1/v2](ss/uot.md)，ShadowTLS 配对示例见本文 `udp_over_tcp` 配置。普通 SS/SS2022 加密、nonce、chunk 与 UDP session 格式保持不变。
 ## 第一步，在面板添加一个 SS 节点
 
-在 Xboard 后台添加 Shadowsocks 节点，选择加密算法。
+在 XBoard 后台添加 Shadowsocks 节点，选择加密算法。
 
 如果下拉框里没有目标 cipher，可以在「加密算法」里直接输入自定义名称。XBoard 会把该字符串作为 `cipher` 原样下发给 heki；普通 SS AEAD（例如 `rabbit128-poly1305`、`aez-384`、`deoxys-ii-256-128`、`aegis-256`、`lea-256-gcm`、`ascon128`、`ascon128a`）不需要改 XBoard 源码。客户端订阅端也必须支持同名 cipher，推荐用 mihomo / Clash.Meta 类客户端验证。
 
@@ -17,9 +14,9 @@
 > 先区分两件事：
 > - `XBoard -> heki` 节点配置下发：UniProxy API 已会返回 `plugin` / `plugin_opts`
 > - `XBoard -> 客户端` 订阅下发：不同订阅模板对 SS 插件的支持不完全一致
-> - 如果你要给客户端稳定下发插件配置，建议继续阅读本文后半部分的「订阅兼容提醒」和单独的排障文档：[XBoard SS 插件订阅修复说明](ss/xboard-ss-subscription-fix.md)
+> - 如果你要给客户端稳定下发插件配置，建议继续阅读本文后半部分的「订阅兼容提醒」和单独的排障文档：[XBoard SS 插件订阅兼容与配置](ss/xboard-ss-subscription-fix.md)
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 type=xboard
@@ -31,7 +28,7 @@ node_id=1
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start
@@ -65,11 +62,9 @@ TLS 混淆模式：
 
 !> Simple Obfs TLS 模式同样由 heki 内置处理；客户端订阅需要正确下发 `obfs=tls` 和 `obfs-host`。
 
-`v1.2.8` 将 SS/SS2022 TCP 改为转发中增量记账，并补齐 UDP 用户会话登记、踢线清理和用户恢复后的首包转发。有效载荷口径保持一致；流量上报和用户同步仍按配置周期执行。
+SS/SS2022 TCP 按转发过程中的有效载荷增量记账；UDP 会登记用户会话，并在用户失效时清理关联，用户恢复后可继续转发首包。流量上报和用户同步仍按配置周期执行。
 
-`v1.2.6` 升级了 SS 相关底层依赖及协议兼容链路；既有 SS/SS2022 加密、nonce、chunk 和插件 on-wire 语义保持兼容，并通过全协议连通性回归。上一版 `v1.2.5` 的 Simple Obfs HTTP/TLS 握手阻塞修复也继续保留。
-
-`v1.2.5` 在 2026-09-04 同版本重发，修复了未完成的 HTTP/TLS obfs 握手阻塞同监听器后续连接的问题。这个问题发生在 SS 解密前，因此会表现为任意 SS 加密算法加 obfs 后偶发批量超时。更新后每条 obfs 握手独立处理，无需在面板或客户端增加额外参数；HTTP/TLS 已通过真实 Mihomo 兼容回归。
+Simple Obfs HTTP/TLS 的每条握手独立处理，未完成握手不会阻塞同一监听器的后续连接，无需在面板或客户端增加额外参数。
 
 
 ### 2. V2Ray Plugin
@@ -111,7 +106,7 @@ WebSocket 传输，heki 内置支持 websocket 模式。
 
 Xiao / V2Board 的 v2node 接口如果下发 `obfs=shadow-tls` 或 `obfs=shadow_tls`，heki 也会自动映射到内置 Shadow TLS。`obfs_password` 会作为 Shadow TLS 密码；握手域名可来自 `shadow_tls_server`、`shadow_tls_host`、`obfs_settings.host`、`network_settings.Host` 或 `network_settings.headers.Host`。只下发这些字段时，heki 会自动补齐兼容运行时和订阅所需的 `plugin_opts=host=...;password=...;version=...`；未显式填写版本时默认使用 `3`。
 
-`v1.2.2` 同版本重发后，这条兼容口径已经和 release notes、Docker 文档、公开 README 对齐：只要面板字段仍是上述几种 Shadow-TLS 组合，heki 运行时不会要求额外新增配置开关；同一轮发布里 SS / SS2022 的 TCP IP cache 也恢复成“同 IP 只保留最近一次成功用户”的单候选语义，不会因为同 IP 高频切换多个用户而累积候选列表。2026-07-16 重发继续修复用户/节点双限速在同一条连接上的重复等待，以及 `aegis-128l + simple_obfs_http/tls` 长流偶发断流；这些调整仍不改变 SS / SS2022 的加密、nonce、chunk、UDP session 或 relay 格式。
+使用上述 Shadow TLS 字段组合时，无需增加服务端配置开关。SS / SS2022 的 TCP IP cache 在同一 IP 上只保留最近一次成功用户；用户限速与节点限速会合并计算等待时间，不会在同一条连接上重复等待。这些行为不改变 SS / SS2022 的加密、nonce、chunk、UDP session 或 relay 格式。
 
 #### 工作原理
 
@@ -389,7 +384,7 @@ QUIC 额外可选参数：
 
 ### 6. KCPTun
 
-KCPTun 现已内置支持常用 KCP 传输参数，无需额外部署 `kcptun-server`。`tcp=true` 伪装模式也已支持，但仅 Linux 可用，且需要 raw socket / iptables 相关权限。
+KCPTun 内置支持常用 KCP 传输参数，无需额外部署 `kcptun-server`。`tcp=true` 伪装模式也已支持，但仅 Linux 可用，且需要 raw socket / iptables 相关权限。
 
 | 面板字段 | 填写内容 |
 |---------|---------|
@@ -436,11 +431,11 @@ KCPTun 现已内置支持常用 KCP 传输参数，无需额外部署 `kcptun-se
 
 ## 订阅兼容提醒
 
-`Xboard -> heki` 这一段，面板已经能把 `plugin` / `plugin_opts` 正常返回给 heki；`server_key` 当前覆盖 `2022-blake3-aes-128-gcm` 和 `2022-blake3-aes-256-gcm`，但 `2022-blake3-chacha20-poly1305` 仍需面板侧补齐。这一点和客户端订阅是否正确下发是两回事。
+`XBoard -> heki` 这一段，面板已经能把 `plugin` / `plugin_opts` 正常返回给 heki；`server_key` 当前覆盖 `2022-blake3-aes-128-gcm` 和 `2022-blake3-aes-256-gcm`，但 `2022-blake3-chacha20-poly1305` 仍需面板侧补齐。这一点和客户端订阅是否正确下发是两回事。
 
 客户端订阅层需要特别注意：
 
-- `flag=shadowsocks` 走的是 `Xboard/app/Protocols/Shadowsocks.php` 的 SIP008 输出。
+- `flag=shadowsocks` 走的是 `XBoard/app/Protocols/Shadowsocks.php` 的 SIP008 输出。
 - 这条输出目前**没有**携带 `plugin` / `plugin_opts`，而且 `handle()` 里只放行了少数传统 AEAD cipher，**没有放行 SS2022**。
 - `flag=general` / `flag=sagernet` / `flag=v2rayn` / `flag=v2rayng` / `flag=passwall` / `flag=ssrplus`、`flag=shadowrocket`、`flag=sing-box` 这一类格式对 SS 插件和 `gost` 最友好，因为它们会直接透传原始 `plugin_opts`。
 - `flag=meta` 比 `clash` / `stash` 更完整：它会把无值 flag 保留成 `true`，可以作为次优方案。
@@ -453,7 +448,7 @@ KCPTun 现已内置支持常用 KCP 传输参数，无需额外部署 `kcptun-se
 - 如需 Simple Obfs 路径参数，优先明确写 `path=/xxx`；若你还要兼容只认原始 simple-obfs 参数的客户端，可以同时保留 `obfs-uri=/xxx`。
 - 如果你用的是原始 SS / SIP008 订阅，不要指望它稳定下发 SS 插件或 SS2022；这种场景建议改用 `flag=general` / `sagernet` / `shadowrocket` / `sing-box` / `meta` 等格式。
 
-更完整的模板分级、代码位置和修复建议见：[XBoard SS 插件订阅修复说明](ss/xboard-ss-subscription-fix.md)。
+更完整的模板分级、代码位置和修复建议见：[XBoard SS 插件订阅兼容与配置](ss/xboard-ss-subscription-fix.md)。
 
 ---
 
@@ -479,19 +474,19 @@ obfs=http;obfs-host=www.bing.com
 2. 确认 `host` 填写的域名可以从服务器正常访问（heki 需要连接该域名完成握手）
 3. 日志中出现 `Shadow-TLS v1/v2/v3 enabled` 对应版本的提示，说明内置服务已正常启动
 4. `client hello verify failed: unexpected record type` 是正常的，说明有非 Shadow TLS 客户端尝试连接被拒绝
-5. ShadowTLS 本身不承载原生 UDP，如需 UDP 请在客户端启用 `udp_over_tcp`。Heki 的 SS AEAD / SS2022 入口支持 UoT v1/v2（包括 v2 固定目标及多目标模式）；实际 UDP 目标继续经过节点的目标限制、UDP 路由、限速和流量统计。每条 UoT 连接最多同时保留 256 个目标，空闲目标按 `udp_timeout` 回收。
+5. ShadowTLS 本身不承载原生 UDP，如需 UDP 请在内层 Shadowsocks 出站启用 `udp_over_tcp`，通用配置与限制见 [Shadowsocks UoT v1/v2](ss/uot.md)。
 
 ### 外部插件不通
 
 ResTLS 需要在服务器上部署对应外部进程。Gost 当前内置 `websocket / wss / mws / mwss / http2 / h2c / grpc / tls / mtls / kcp / pht / phts / quic`；仅少数未覆盖模式仍需外部进程。KCPTun 当前常用模式已内置，`tcp=true` 仅要求 Linux 与 raw socket / iptables 权限。
 
-### XBoard 订阅下发正常，heki 还是没问题，但客户端订阅内容不对
+### XBoard 订阅下发正常，Heki 还是没问题，但客户端订阅内容不对
 
 先区分是不是面板订阅模板的问题：
 
-- 如果 heki 日志里已经能看到 `plugin=gost`、`plugin=kcptun`、`plugin=v2ray-plugin` 等配置生效，说明 `Xboard -> heki` 这段通常没问题。
+- 如果 heki 日志里已经能看到 `plugin=gost`、`plugin=kcptun`、`plugin=v2ray-plugin` 等配置生效，说明 `XBoard -> heki` 这段通常没问题。
 - 如果只有客户端订阅内容不对，优先检查你用的订阅格式是不是 `flag=shadowsocks`，以及插件选项里是否还在使用裸 `tls` / `nocomp` 这类无值参数。
-- 这类问题的详细排查与修复位置见：[XBoard SS 插件订阅修复说明](ss/xboard-ss-subscription-fix.md)。
+- 这类问题的详细排查与修复位置见：[XBoard SS 插件订阅兼容与配置](ss/xboard-ss-subscription-fix.md)。
 
 ### 推荐方案
 

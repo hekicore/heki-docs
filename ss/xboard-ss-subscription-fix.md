@@ -1,10 +1,10 @@
-# XBoard SS 插件订阅修复说明
+# XBoard SS 插件订阅兼容与配置
 
-这篇文档只讲一件事：`Xboard -> heki` 已经能正常起节点，但 `Xboard -> 客户端` 这段订阅内容不完整，导致 SS 插件参数、SS2022 或布尔开关到了客户端就变样了。
+这篇文档只讲一件事：`XBoard -> heki` 已经能正常起节点，但 `XBoard -> 客户端` 这段订阅内容不完整，导致 SS 插件参数、SS2022 或布尔开关到了客户端就变样了。
 
 先把边界说清楚：
 
-- 对 SS 插件来说，`Xboard -> heki` 这段现在基本没问题，UniProxy `config()` 已经会下发 `plugin` 和 `plugin_opts`；
+- 对 SS 插件来说，`XBoard -> heki` 这段现在基本没问题，UniProxy `config()` 已经会下发 `plugin` 和 `plugin_opts`；
 - heki 这边 `panel/xboard.go`、`config/ss_plugin.go` 也已经能把这些字段接住；
 - 真正容易出问题的，主要还是各类客户端订阅模板；
 - 只有一个额外例外要记一下：XBoard 当前仍只给 `2022-blake3-aes-128-gcm` 和 `2022-blake3-aes-256-gcm` 返回 `server_key`，`2022-blake3-chacha20-poly1305` 还没补齐。
@@ -22,7 +22,7 @@
 
 ## XBoard 订阅支持矩阵
 
-先把边界说清楚：`heki` 服务端这边已经回归验证过的内置 `gost` 模式包括：
+Heki 服务端内置支持以下 `gost` 模式：
 
 - `websocket`
 - `wss`
@@ -60,7 +60,7 @@
 
 对应代码：
 
-- `Xboard/app/Protocols/Shadowsocks.php`
+- `XBoard/app/Protocols/Shadowsocks.php`
 
 这一套现在的行为很简单：
 
@@ -83,8 +83,8 @@
 
 对应代码位置：
 
-- `Xboard/app/Protocols/Clash.php`
-- `Xboard/app/Protocols/Stash.php`
+- `XBoard/app/Protocols/Clash.php`
+- `XBoard/app/Protocols/Stash.php`
 
 这些文件里都用了类似的解析方式：
 
@@ -119,7 +119,7 @@ collect(explode(';', $pluginOpts))
 
 对应代码位置：
 
-- `Xboard/app/Protocols/ClashMeta.php`
+- `XBoard/app/Protocols/ClashMeta.php`
 
 `ClashMeta.php` 的区别在于：它遇到无值参数时，不是直接丢掉，而是会保留成布尔值：
 
@@ -143,10 +143,10 @@ collect(explode(';', $pluginOpts))
 
 对应代码位置：
 
-- `Xboard/app/Protocols/Surge.php`
-- `Xboard/app/Protocols/Loon.php`
-- `Xboard/app/Protocols/QuantumultX.php`
-- `Xboard/app/Protocols/Surfboard.php`
+- `XBoard/app/Protocols/Surge.php`
+- `XBoard/app/Protocols/Loon.php`
+- `XBoard/app/Protocols/QuantumultX.php`
+- `XBoard/app/Protocols/Surfboard.php`
 
 这些模板虽然也会读取 `plugin` / `plugin_opts`，但 `switch ($plugin)` 里基本只处理了 `obfs` 分支，没有给 `gost` 做通用映射。
 
@@ -178,11 +178,11 @@ collect(explode(';', $pluginOpts))
 按当前模板行为来看，可以直接分成四档：
 
 - 第一梯队：`flag=general` / `sagernet` / `v2rayn` / `v2rayng` / `passwall` / `ssrplus`
-  对应 `Xboard/app/Protocols/General.php`，会直接透传整段 `plugin;plugin_opts`
+  对应 `XBoard/app/Protocols/General.php`，会直接透传整段 `plugin;plugin_opts`
 - 第一梯队：`flag=shadowrocket`
-  对应 `Xboard/app/Protocols/Shadowrocket.php`，也会直接透传原始 `plugin_opts`
+  对应 `XBoard/app/Protocols/Shadowrocket.php`，也会直接透传原始 `plugin_opts`
 - 第一梯队：`flag=sing-box`
-  对应 `Xboard/app/Protocols/SingBox.php`，会直接带出 `plugin` / `plugin_opts`
+  对应 `XBoard/app/Protocols/SingBox.php`，会直接带出 `plugin` / `plugin_opts`
 - 第二梯队：`flag=meta`
   无值 flag 能保留，但仍属于结构化转换
 - 第三梯队：`flag=clash` / `flag=stash`
@@ -207,7 +207,7 @@ collect(explode(';', $pluginOpts))
 
 文件：
 
-- `Xboard/app/Services/ServerService.php`
+- `XBoard/app/Services/ServerService.php`
 
 现在 `buildNodeConfig()` 里的 `server_key` 分支只覆盖了：
 
@@ -231,7 +231,7 @@ collect(explode(';', $pluginOpts))
 
 文件：
 
-- `Xboard/app/Protocols/Shadowsocks.php`
+- `XBoard/app/Protocols/Shadowsocks.php`
 
 这里建议补两件事：
 
@@ -260,8 +260,8 @@ if (data_get($server, 'protocol_settings.plugin')) {
 
 文件：
 
-- `Xboard/app/Protocols/Clash.php`
-- `Xboard/app/Protocols/Stash.php`
+- `XBoard/app/Protocols/Clash.php`
+- `XBoard/app/Protocols/Stash.php`
 
 把当前“没有 `=` 就直接丢掉”的逻辑，改成保留为 `"true"`：
 
@@ -306,18 +306,10 @@ $parsedOpts['path']
 $parsedOpts['path'] ?? $parsedOpts['obfs-uri'] ?? null
 ```
 
-## heki 这一侧已经对齐的位置
+## Heki 配置解析能力
 
-为了避免把锅甩错方向，这里把 heki 这边已经对上的位置也列一下：
-
-- `panel/xboard.go`
-  `parseSSConfig()` 已支持从 XBoard UniProxy config 解析 `plugin`、`plugin_opts`、`server_key`
-- `config/ss_plugin.go`
-  `ParseSSPluginOpts()` 已支持无值参数，像 `tls` 会被解析成 `true`
-- `config/ss_plugin_test.go`
-  已覆盖 `gost / kcptun / pht / quic / grpc / websocket` 等 plugin 配置解析
-- `panel/panel_test.go`
-  已覆盖 XBoard plugin / plugin_opts 到 heki 自定义配置的转换测试
+- `panel/xboard.go` 的 `parseSSConfig()` 支持从 XBoard UniProxy config 解析 `plugin`、`plugin_opts`、`server_key`。
+- `config/ss_plugin.go` 的 `ParseSSPluginOpts()` 支持无值参数，例如 `tls` 会解析为 `true`。
 
 ## 实际接入建议
 

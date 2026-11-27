@@ -1,15 +1,14 @@
-# V2board / xiaov2board 对接 naive
+# V2Board / XiaoV2Board 对接 Naive
 
 支持官方客户端的 `Padding` 协商和双向前 8 帧填充，计费不包含 padding；当前使用 HTTP/2 CONNECT over TLS，未实现 HTTP/3。
 
 !> 原版 V2Board 的实际兼容性取决于面板分支返回的 API 字段。若你的面板未返回 naive 所需字段，建议优先使用 XBoard / PPanel。
 !> Naive 在 heki 内置实现中走 `HTTP/2 CONNECT over TLS`，请保持面板 TLS 开启。若面板分支下发 `tls=0`，heki 会解析该字段，但当前不会提供完整的明文 Naive 服务。
 
-# 第一步，在面板添加一个节点
+## 第一步，在面板添加一个节点
 
-非常简单，教程省略
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 # xiaov2board 用这个
@@ -26,7 +25,7 @@ Naive 需要 TLS 证书；如果面板分支显式下发 `tls=0`，请在面板�
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start

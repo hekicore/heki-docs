@@ -1,20 +1,19 @@
-# V2board / xiaov2board 对接 vless
+# V2Board / XiaoV2Board 对接 vless
 
 > XiaoV2Board：节点从 TLS 改成 Reality 或无 TLS 后，面板的 `tls_settings` 里可能还留着 `cert_mode=remote`，但不再带证书（面板只为 `tls=1` 的节点签发远程证书）。Heki 会忽略这种残留值，节点正常启动；`tls=1` 且 `cert_mode=remote` 却没有证书时仍会报错，需要在面板重新保存节点让它生成证书。
 
 !> 原版 V2Board 的实际兼容性取决于面板分支返回的 API 字段。若你的面板未返回 VLESS / Reality 所需字段，建议优先使用 XBoard / PPanel。
 !> 已适配的 `xiaov2board` `v2node` 分支可下发 `listen_ip`、`base_config`、`routes`、`encryption_settings` 等字段，heki 会按当前支持范围接入。
 
-# 第一步，在面板添加一个节点
+## 第一步，在面板添加一个节点
 
-非常简单，教程省略。
 
 建议仅使用 `tcp + reality + xtls-rprx-vision` 组合。
 
 当前 heki 已确认支持 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp`。
 对 `xiaov2board` `v2node` 下发的 `xhttp`，heki 会在运行时规范化为 `splithttp`，不会静默退回 `tcp`。
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 # xiaov2board 用这个
@@ -54,7 +53,7 @@ Reality 模式不需要外部证书；若你的面板分支下发的是普通 TL
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start

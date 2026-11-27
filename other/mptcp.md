@@ -50,7 +50,7 @@ mptcp=true
 
 ## 关闭时的行为
 
-`mptcp=false`（默认）时，Heki 的 TCP 监听会明确关闭 MPTCP。Go 运行时在系统支持的情况下默认给监听端口开启 MPTCP，早期版本在 `mptcp=false` 时沿用了这个默认值，所以系统开了 `net.mptcp.enabled=1` 的机器上，即使没有配置也会接受 MPTCP 连接。现在是否接受只由 `mptcp` 决定，包括 Mieru 的 TCP 监听。原先依赖这一隐式行为的，需要显式写 `mptcp=true`。
+`mptcp=false`（默认）时，Heki 的 TCP 监听会明确关闭 MPTCP；需要接受 MPTCP 连接时，必须显式设置 `mptcp=true`。该配置同样适用于 Mieru 的 TCP 监听。
 
 ## 注意事项
 

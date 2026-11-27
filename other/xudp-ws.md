@@ -1,10 +1,8 @@
-# XUDP 与 WebSocket 保活
+# XUDP 与 WebSocket 传输
 
 ## XUDP 支持
 
 Heki 的 VMess、VLESS 支持 XUDP，无需增加服务端开关。XUDP 将 UDP 数据报封装到代理连接中；需要客户端支持并选择 XUDP，同时开启 UDP 转发。它与 Shadowsocks 的 UoT 是不同的封装，不能混用。
-
-1.3.0 已有 XUDP，但 VMess 在同一个 XUDP 会话切换 UDP 目标时，会错误地沿用首个目标。本次修复允许逐包选择目标，并返回对应的来源地址；VLESS 已支持这一行为。上述 VMess 修复与 `ws_heartbeat` 从 1.3.1 起提供，1.3.0 不具备这些修复和配置项。
 
 支持范围以所用传输和客户端为准：VMess/VLESS 的 TCP、WS、WS+TLS 可承载 XUDP；VLESS Reality + TCP + Vision 也已有 XUDP 支持。WS 不能与 `xtls-rprx-vision` flow 组合，WS 节点的 flow 应为空或 `none`。不承诺 Xray XUDP GlobalID 的跨外层连接会话迁移。
 
@@ -30,9 +28,30 @@ proxies:
 
 VMess 使用对应节点的 `type: vmess`、`cipher: auto`（AEAD 订阅建议省略 `alterId`），其余 WS/TLS 参数按节点填写，保留 `udp: true` 与 `packet-encoding: xudp`。客户端订阅没有输出这些选项时，需要在客户端覆盖或调整订阅模板；仅修改 Heki 不会改写客户端订阅。
 
+### WebSocket early data
+
+VMess/VLESS 的普通 WebSocket（含 WS+TLS）入口支持客户端通过 `Sec-WebSocket-Protocol` 携带 Base64 early data。前置数据会在后续 WebSocket 帧之前交给对应协议处理，服务端自动接收，不需要增加配置开关。此入口的单个合法 Base64 token 按 early data 处理。
+
+Mihomo 可在前述 WS 节点的 `ws-opts` 中增加：
+
+```yaml
+ws-opts:
+  path: /vless
+  headers:
+    Host: node.example.com
+  max-early-data: 2048
+  early-data-header-name: Sec-WebSocket-Protocol
+```
+
+- 客户端自动编码首段协议数据，不要手动向 `headers` 写入固定的 `Sec-WebSocket-Protocol` 内容。
+- 反向代理/CDN 需要支持 WebSocket，并原样转发该请求头。
+- `max-early-data: 0` 可关闭客户端 early data，继续使用普通 WebSocket。
+- WebSocket early data 不是 TLS 0-RTT；WS 也不能与 `xtls-rprx-vision` flow 组合。
+- 完整面板和客户端示例见 [VMess early data](v2ray/xboard-v2ray.md#websocket-early-data-示例) 与 [VLESS early data](vless/xboard-vless.md#websocket-early-data-示例)。
+
 ## WS 主动心跳
 
-Heki 已能回复客户端 Ping。本次新增主动定时发送标准 WebSocket Ping，适用于经 Nginx、CDN 等代理后，因传输连接空闲而被提前关闭的 VMess/VLESS WS 连接。
+Heki 支持回复客户端 Ping，也可主动定时发送标准 WebSocket Ping，适用于经 Nginx、CDN 等代理后，因传输连接空闲而被提前关闭的 VMess/VLESS WS 连接。
 
 主配置 `heki.conf`：
 

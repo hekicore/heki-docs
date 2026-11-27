@@ -20,7 +20,7 @@ PPanel 当前支持的组合：
 
 未列出的 obfs 不会静默降级。若对应组合没有服务端实现，heki 会在节点启动时明确报错，避免节点看似启动成功但客户端无法握手。
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 type=ppanel
@@ -32,7 +32,7 @@ node_id=1
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

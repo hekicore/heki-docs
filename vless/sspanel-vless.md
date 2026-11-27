@@ -4,7 +4,7 @@
 
 !> 面板低于 26.1.0 时，`enable_vless` 节点在订阅里仍是 VMess。Heki 会按面板版本判断：旧版面板下继续提供 VMess 并在日志提示，不会切到 VLESS 让客户端连不上。
 
-# 第一步，在面板添加节点
+## 第一步，在面板添加节点
 
 节点类型选 `Vmess`，自定义配置示例（Reality + Vision）：
 
@@ -39,7 +39,7 @@
 
 用户 ID 是面板用户的 UUID。
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 type=sspanel-uim
@@ -51,7 +51,7 @@ node_id=1
 
 `security=tls` 时需要证书，参考: [heki 详细配置项](heki/heki-config.md)。Reality 不需要证书。
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start

@@ -15,7 +15,7 @@
 
 > TUIC V5 基于 QUIC/UDP 协议，中转服务器需要支持 UDP 转发
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 !> TUIC V5 必须配置 TLS 证书！！！
 
@@ -55,7 +55,7 @@ cert_mode=http
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

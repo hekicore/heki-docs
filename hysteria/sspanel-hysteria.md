@@ -2,7 +2,7 @@
 
 需要 SSPanel-UIM 26.1.0 或更新版本，面板从这个版本开始有 Hysteria 2 节点类型。旧版面板没有该类型。
 
-# 第一步，在面板添加节点
+## 第一步，在面板添加节点
 
 节点类型选 `Hysteria 2`，面板会填入一份自定义配置模板。常用字段：
 
@@ -37,9 +37,9 @@
 
 用户密码是面板用户的 UUID。
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
-!> hysteria 必须要配置证书！！！
+!> hysteria 必须配置证书。
 
 ```ini
 type=sspanel-uim
@@ -51,7 +51,7 @@ node_id=1
 
 证书可以手动指定 `cert_file` / `key_file`，也可以用 `cert_domain` + `cert_mode` 自动申请，参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start
@@ -59,7 +59,7 @@ heki start
 
 若出现启动失败的情况，使用`heki log`查看错误信息
 
-# 说明
+## 说明
 
 - SSPanel-UIM 的 Hysteria 2 与 Heki 原有的 AnyTLS 对接都用节点类型编号 15。Heki 按自定义配置里是否有 `hysteria2` 对象区分，没有时仍按 AnyTLS 处理。
 - Metron 面板的格式不同，不适用本页。

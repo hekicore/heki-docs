@@ -4,13 +4,16 @@
 
 ## 快速开始
 
-[安装与配置](heki/heki-config.md) | [Docker 部署](docker/docker-tutorial.md)
+| 快速入口 | 专题指南 |
+|---|---|
+| [安装与配置](heki/heki-config.md) | [Mieru TCP 回收](mieru/xboard-mieru.md#mieru-tcp-连接回收配置) |
+| [Docker 部署](docker/docker-tutorial.md) | [XHTTP 证书验证](other/xhttp-config.md) |
+| [复杂配置实例](heki/config-examples.md) | [XUDP 与 WS 保活](other/xudp-ws.md) |
+|  | [流量上报与自动恢复](other/traffic-accounting.md) |
 
-[复杂配置实例](heki/config-examples.md) · [Mieru TCP 回收](mieru/xboard-mieru.md#mieru-tcp-连接回收配置) · [XHTTP 证书验证](other/xhttp-config.md)
+**当前稳定版：** `v1.3.1`（发布日期：`2026-11-22`）
 
-> 当前稳定版：`v1.3.1`；Docker 推荐标签：`hekicore/heki:latest`，可固定 `hekicore/heki:1.3.1`；发布日期：`2026-11-22`
-
-[XUDP 与 WS 保活](other/xudp-ws.md) · [流量上报与自动恢复](other/traffic-accounting.md)
+**Docker 推荐：** `hekicore/heki:latest`（可固定 `hekicore/heki:1.3.1`）
 
 ## 🎉 免费版
 
@@ -22,7 +25,7 @@
 
 ## 功能介绍
 
-### heki 后端特点
+### Heki 后端特点
 
 | 维度 | 说明 |
 |---|---|
@@ -98,7 +101,7 @@
 
 ## 各协议支持详情
 
-### v2ray（VMess）
+### V2Ray（VMess）
 
 | 协议 | 传输方式 |
 |---|---|
@@ -194,4 +197,4 @@
 
 > Mieru 会基于用户名、密码和系统时间派生密钥。请确保客户端与服务端时间同步正常，推荐保持秒级误差；按上游协议文档，时间差理论上不应超过约 4 分钟。
 > Mieru 直连目标侧失败（如目标 DNS 不存在、目标端口拒绝、IPv6 直连被系统拒绝）默认不输出 warning，避免客户端本机协议和系统探测流量刷屏；route/block/非 direct 出站失败仍会输出结构化 warning。
-> Heki 1.2.9 默认关闭额外的 TCP 回收策略，可按需设置握手超时、空连接保留时间及双向无流量超时。参数区别和完整示例见 [Mieru TCP 连接回收配置](mieru/xboard-mieru.md#mieru-tcp-连接回收配置)。
+> 额外的 Mieru TCP 回收策略默认关闭，可按需设置握手超时、空连接保留时间及双向无流量超时。参数区别和完整示例见 [Mieru TCP 连接回收配置](mieru/xboard-mieru.md#mieru-tcp-连接回收配置)。

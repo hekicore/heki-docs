@@ -1,12 +1,11 @@
-# Xboard 对接 vless
+# XBoard 对接 vless
 
-# 第一步，在面板添加一个节点
+## 第一步，在面板添加一个节点
 
-非常简单，教程省略。
 
 建议仅使用 `tcp + reality + xtls-rprx-vision` 组合。
 
-该组合支持 TCP 和 UDP。UDP 经 XUDP/Mux 封装在 TCP 连接内；此前 Heki 缺少 VLESS Mux 入站路径，现已补齐。Vision 账号也兼容客户端使用空 flow 的 UDP/XUDP，但不能通过空 flow 或 Mux TCP 子流绕过 Vision。
+该组合支持 TCP 和 UDP，UDP 经 XUDP/Mux 封装在 TCP 连接内。Vision 账号也兼容客户端使用空 flow 的 UDP/XUDP，但不能通过空 flow 或 Mux TCP 子流绕过 Vision。
 
 当前 heki 已确认支持 XBoard server config 下发的 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp`。
 `ws` 支持客户端通过 `Sec-WebSocket-Protocol` 携带 Base64 early data，前置数据会在后续 WebSocket 帧之前交给 VLESS；此入口的单个合法 Base64 token 按 early data 处理。
@@ -14,7 +13,7 @@
 
 如果 XBoard / XiaoV2Board 把 VLESS `flow` 下发成 `none`，heki 会按“未启用 flow”处理，等同于空字符串。只有 `flow=xtls-rprx-vision` 会启用 Vision，并继续要求 `tcp + TLS/Reality`。
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 type=xboard
@@ -117,7 +116,7 @@ proxies:
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start

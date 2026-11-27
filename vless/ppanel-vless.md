@@ -83,7 +83,7 @@ vless flow=xtls-rprx-vision requires transport=tcp
 
 这表示你使用了 `flow=xtls-rprx-vision`，但传输层不是 `tcp`，例如 `ws`、`grpc` 或 `h2`。
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 type=ppanel
@@ -113,7 +113,7 @@ cert_mode=http
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

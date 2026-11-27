@@ -1,0 +1,93 @@
+{
+  "manifestVersion": 1,
+  "generatedAt": "2026-11-27",
+  "packages": [
+    {
+      "name": "docsify",
+      "version": "4.13.1",
+      "source": "https://unpkg.com/docsify@4.13.1/",
+      "license": "licenses/docsify.txt",
+      "files": {
+        "docsify.min.js": "9123f808d3f6ad736b4a8f99944a611f87c5d4f9328030080a5c029ed5f450a5",
+        "vue.css": "ee1f877a976624c45847d74c022dd205a76ccdf1a2f1228f4769176cb7a2d012",
+        "search.min.js": "ab20792dc69dfd9cdb19479f716f69a619e577dec452739196770134dd71f297"
+      }
+    },
+    {
+      "name": "docsify-sidebar-collapse",
+      "version": "1.3.5",
+      "source": "https://unpkg.com/docsify-sidebar-collapse@1.3.5/",
+      "license": "licenses/docsify-sidebar-collapse.txt",
+      "files": {
+        "docsify-sidebar-collapse.min.js": "0222f37f6822c0fad2c5122edd35207bd87f75d040001d7a8171b3861b7f2031"
+      }
+    },
+    {
+      "name": "docsify-copy-code",
+      "version": "2.1.1",
+      "source": "https://unpkg.com/docsify-copy-code@2.1.1/",
+      "license": "licenses/docsify-copy-code.txt",
+      "files": {
+        "docsify-copy-code.min.js": "f1133b4ffab816a791a87aaf4484c35053c5accb85c84f8fa5e685a5d2ccd05c"
+      }
+    },
+    {
+      "name": "prismjs",
+      "version": "1.30.0",
+      "source": "https://unpkg.com/prismjs@1.30.0/",
+      "license": "licenses/prismjs.txt",
+      "files": {
+        "prism-bash.min.js": "6260814110e5182f2956e3bd257429548d9dbf2a9b66a63719b26cf9fac966a7",
+        "prism-json.min.js": "956d86baa5ae7ec4106758f354ac2d140bdcd7fc103dece02f73ed12b8d663e4",
+        "prism-yaml.min.js": "719c8e8b8c344dc9de510c729f65ba840b1502a0a8e7e25e2ad19ee715f65c02",
+        "prism-ini.min.js": "cf1b61f4a67f0101005c5133e22113e2f3a74f1c7917034e084df688f1735381"
+      }
+    },
+    {
+      "name": "Roboto Mono",
+      "version": "Google Fonts v31",
+      "source": "https://fonts.google.com/specimen/Roboto+Mono",
+      "license": "licenses/roboto-mono-OFL.txt",
+      "files": {
+        "fonts/roboto-mono-400-cyrillic-ext.woff2": "de9d9d69c7140eb0ba951986b1181ff1725c14c79a9deffc13cc645cfd312a3e",
+        "fonts/roboto-mono-400-cyrillic.woff2": "e3e9abf60b61dbf89160e8ad6cbc60ba0116a6d7297f5173c787aaeb6a6772dc",
+        "fonts/roboto-mono-400-greek.woff2": "4b1c9b0ba29c3f32c0a04915792aeab9d614d147d8c695d955dc069c285b329e",
+        "fonts/roboto-mono-400-latin-ext.woff2": "3d1e72bf2f7f579e5680e87a492bf14f156c01d09da741d5bb657f2841787157",
+        "fonts/roboto-mono-400-latin.woff2": "e03013e0baa5690a803c188da2214d920c3245b25ad78421ecc8ae86cd842ae9",
+        "fonts/roboto-mono-400-vietnamese.woff2": "90237ead9085efcdb757ba498a2d46460e009c2907c83291ec56f59813976593"
+      }
+    },
+    {
+      "name": "Source Sans Pro",
+      "version": "Google Fonts v24",
+      "source": "https://fonts.google.com/specimen/Source+Sans+Pro",
+      "license": "licenses/source-sans-pro-OFL.txt",
+      "files": {
+        "fonts/source-sans-pro-300-cyrillic-ext.woff2": "ae6540927bc0a51f7dbe213bd128cb04b0f636be930be910d85dfe2d64a7791f",
+        "fonts/source-sans-pro-300-cyrillic.woff2": "dc73f8a0a374f934980dc8f4fc2187b36c71476cbc79f6dc3ab59522dd505a6e",
+        "fonts/source-sans-pro-300-greek-ext.woff2": "b980b3a940b546c43ddd95074e808f1a16e2d24f4f8de4386be0b6e3ea890b32",
+        "fonts/source-sans-pro-300-greek.woff2": "2a02688bd566956a57878bd879e03c02adb8fee392b583554a594a1a6015525c",
+        "fonts/source-sans-pro-300-latin-ext.woff2": "1116b45248305e0235a2bfcc027eb4aeb4bf7908b4700e2b687766d96c377d96",
+        "fonts/source-sans-pro-300-latin.woff2": "a327a082ad3f8b9d4691d019a8a825df5951f9e0b6fa3e416e711dbe7574dfd4",
+        "fonts/source-sans-pro-300-vietnamese.woff2": "1c1fbd5f57ddb2d0835f957a223070f1dfc7906c7de94cbcf8ad0ae991d90d9e",
+        "fonts/source-sans-pro-400-cyrillic-ext.woff2": "fe7567ff731b946799fa58ea6c4d0d34f985c0c577c208b88b125a440ff8037b",
+        "fonts/source-sans-pro-400-cyrillic.woff2": "9be8743208049099e282bbd65f6c5c11d020898cedb6fc3d3fe038f070fbf8be",
+        "fonts/source-sans-pro-400-greek-ext.woff2": "b37896355585ae27b8e198dd1887525b42b208434fa9f730895160ce385bd0c0",
+        "fonts/source-sans-pro-400-greek.woff2": "e19ebf91f4c1d79906028cc7fef72f2dd06c6ae922f1833d9cf8c213ca863e43",
+        "fonts/source-sans-pro-400-latin-ext.woff2": "6bcddc1c2f4716329519fd9599deb891cafe86dad745226b2106c1e9eab92309",
+        "fonts/source-sans-pro-400-latin.woff2": "fb7b366bd65fb747ebc7d6e2af9d8a25b056c27c4551db320fe68799ca43dc91",
+        "fonts/source-sans-pro-400-vietnamese.woff2": "9560f99936f265a0cd0134b80d7a93ba462a8717bfc0803c3f35140e32971599",
+        "fonts/source-sans-pro-600-cyrillic-ext.woff2": "40b5436137a085411627bcc1d9ea6026ee1d885fe75fe785cd9c4b7caecef561",
+        "fonts/source-sans-pro-600-cyrillic.woff2": "b091c0741ea112ae870927b547daed5fd2b93d736c3190e89b47297fbfc602fd",
+        "fonts/source-sans-pro-600-greek-ext.woff2": "f896451f3b68a3371f8944378d4c3a96d0bfbc66cc39852a584e99a05dd9dac5",
+        "fonts/source-sans-pro-600-greek.woff2": "50ce7ec7593d7f83ac371f58b851ab6addb5d46aad7a19c09d4368f61c9dc1b5",
+        "fonts/source-sans-pro-600-latin-ext.woff2": "14bb07353099b4f622a934a43c6d209acc671d37b04af80614c0704b666438f7",
+        "fonts/source-sans-pro-600-latin.woff2": "a2fe82406659ad9ab5fc997e99f26dc63614f3f6fc474a1a8a2483e5248b8800",
+        "fonts/source-sans-pro-600-vietnamese.woff2": "de6fcb2c7e1a6331a2f3f16a8fff24c126ee1d9ca81c98f04a7ae110589c35fe"
+      }
+    }
+  ],
+  "sharedFiles": {
+    "fonts.css": "ee3cceab49365e5d642d92ea689e613235bbcb867735a5017e4a89559b1a53bc"
+  }
+}

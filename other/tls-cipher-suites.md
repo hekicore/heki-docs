@@ -1,6 +1,6 @@
-# tls 加密套件配置
+# TLS 加密套件配置
 
-# 支持的加密套件
+## 支持的加密套件
 
 >请自行了解什么是 tls 加密套件，不熟悉则不要乱动，保持默认即可
 
@@ -32,7 +32,7 @@ TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256      0xcca8
 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256    0xcca9
 ```
 
-# 配置方式
+## 配置方式
 
 > 以`:`分隔每个套件名或套件 id
 

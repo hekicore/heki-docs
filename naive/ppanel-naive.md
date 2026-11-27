@@ -1,4 +1,4 @@
-# ppanel 对接 naive
+# ppanel 对接 Naive
 
 支持官方客户端的 `Padding` 协商和双向前 8 帧填充，计费不包含 padding；当前使用 HTTP/2 CONNECT over TLS，未实现 HTTP/3。
 
@@ -8,7 +8,7 @@
 
 Naive 使用 HTTP/2 CONNECT 代理协议，heki 内置实现当前走 TLS 模式，请在 ppanel 里使用 `security=tls`。
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 !> Naive 当前可用路径需要 TLS 证书；若 ppanel 下发 `security=none`，heki 会解析该字段，但不会提供完整的明文 Naive 服务。
 
@@ -36,7 +36,7 @@ cert_mode=http
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

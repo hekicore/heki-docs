@@ -19,8 +19,8 @@ systemctl enable docker
 | Docker Hub | `hekicore/heki` |
 | 支持架构 | `linux/amd64`、`linux/arm64`（自动选择） |
 | 标签 | `hekicore/heki:latest`（正式版）、`hekicore/heki:beta`（测试版）、`hekicore/heki:版本号` |
-
-> 当前稳定版：`v1.3.1`；发布日期：`2026-11-22`。更新时拉取 `hekicore/heki:latest`，或固定 `hekicore/heki:1.3.1`。
+| 当前稳定版 | `v1.3.1` |
+| 发布日期 | `2026-11-22` |
 
 升级前备份挂载的完整配置目录和 Compose/环境配置。旧节点文件首次成功启动后会拆分为用户覆盖和 `.runtime/` 启动快照；回退 1.2.9 应先停容器并恢复升级前配置，不能只改镜像标签。详见 [升级与回退](other/upgrade-rollback.md)。更新使用 `docker compose pull` 和 `docker compose up -d`；仅重启容器不会更新镜像或环境变量。
 
@@ -81,12 +81,12 @@ environment:
 
 ### xhttp / SplitHTTP 说明
 
-- `xhttp` 现已支持，运行时会统一规范化为 `splithttp`
+- `xhttp` 运行时会统一规范化为 `splithttp`
 - 当前支持协议：`v2ray(vmess)`、`vless`、`trojan`、`anytls`
 - 面板模式下，`VMess / VLESS / Trojan` 已支持面板下发 `xhttp`
 - `AnyTLS` 运行时同样支持 `xhttp/splithttp`；但能否直接由面板完整下发，取决于上游面板是否返回完整的 `network/networkSettings`
 - 本地直配或 Docker 调试环境下，可直接写 `vmess_transport=xhttp`、`vless_transport=xhttp`、`trojan_transport=xhttp`、`anytls_transport=xhttp`
-- `splithttp/xhttp` 的内置监听器现已对齐普通 transport 语义：`listen` 留空时会按通配地址绑定，`localhost` 会自动归一化成本地回环；若误把域名写进监听地址，启动会返回明确错误而不是 panic
+- `splithttp/xhttp` 的内置监听器遵循普通 transport 语义：`listen` 留空时会按通配地址绑定，`localhost` 会自动归一化成本地回环；若误把域名写进监听地址，启动会返回明确错误而不是 panic
 - `xhttp` 继续复用现有的 `*_h2_path` / `*_h2_host`，没有单独的 `*_xhttp_path` / `*_xhttp_host`
 - 面板若下发 `network_settings.mode/extra`，会分别映射为运行时 `xhttp_mode` / `xhttp_extra`
 - XBoard 常见默认模版里，`xhttp_extra` 的 `"16-32"`、`"8"`、`"true"` 这类字符串写法、`headers` 的数组形态（如 `[{\"name\":\"X-Test\",\"value\":\"1\"}, \"X-Trace: demo\"]`），以及默认模版里不完整的 `downloadSettings` 占位对象，都会自动兼容；但如果你显式写了完整 `downloadSettings` 且值非法，启动仍会直接报错

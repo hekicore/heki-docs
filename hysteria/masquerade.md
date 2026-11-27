@@ -1,7 +1,5 @@
 # Hysteria2 网站伪装（Masquerade）
 
-> 2026-10-31 的 v1.2.9 再次同版本重发新增。此前的 1.2.9 安装包和镜像不包含，需要重新执行 `heki update 1.2.9`，或拉取镜像并重建容器。
-
 Masquerade 让 Hy2 的 UDP 监听器对普通 HTTP/3 请求提供网站内容。认证失败的请求也进入同一个伪装处理器；认证成功的 Hy2 TCP/UDP 转发保持原有路径，不经过伪装网站。
 
 默认不开启，仍返回 404。它不使用 `v2ray_fallback_addr/port`，也不直接读取官方 Hysteria 的 YAML。

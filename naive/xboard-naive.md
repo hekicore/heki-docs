@@ -1,6 +1,6 @@
-# xboard 对接 naive
+# XBoard 对接 Naive
 
-本次兼容更新补齐官方 NaiveProxy 的 `Padding` 协商：双向前 8 帧携带长度和随机 padding，随后转为普通数据流。面板流量只计算有效载荷。当前传输范围仍为 TLS 上的 HTTP/2 CONNECT，未实现 HTTP/3。
+Heki 支持官方 NaiveProxy 的 `Padding` 协商：双向前 8 帧携带长度和随机 padding，随后转为普通数据流。面板流量只计算有效载荷。传输范围为 TLS 上的 HTTP/2 CONNECT，不支持 HTTP/3。
 
 ## 前提条件
 
@@ -13,7 +13,7 @@
 2. 配置节点端口和 TLS 相关参数
 3. 保存节点配置
 
-## heki 配置
+## Heki 配置
 
 ```
 type=xboard

@@ -336,7 +336,7 @@ systemctl cat 'heki@.service'
 
 ### 常见问题快速排查
 
-#### `Unit heki@hk-a.service not found`
+#### `Unit Heki@hk-a.service not found`
 
 说明 systemd 模板服务没有安装。确认文件存在：
 

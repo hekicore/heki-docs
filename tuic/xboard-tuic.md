@@ -1,10 +1,10 @@
-# Xboard 对接 TUIC V5
+# XBoard 对接 TUIC V5
 
-# 第一步，在面板添加一个节点
+## 第一步，在面板添加一个节点
 
-在 Xboard 面板中添加 TUIC 节点，配置 `congestion_control`（拥塞控制算法，推荐 `cubic`）、`server_name`（TLS SNI 域名）等参数。
+在 XBoard 面板中添加 TUIC 节点，配置 `congestion_control`（拥塞控制算法，推荐 `cubic`）、`server_name`（TLS SNI 域名）等参数。
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
 !> TUIC V5 基于 QUIC/UDP 协议，必须配置 TLS 证书！
 
@@ -74,7 +74,7 @@ node_id=1
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start

@@ -1,4 +1,4 @@
-# ppanel 对接 trojan
+# ppanel 对接 Trojan
 
 ## 第一步，在面板添加一个节点
 
@@ -15,7 +15,7 @@ ppanel 支持的 Trojan 传输层组合：
 当前 heki 已确认兼容 ppanel 下发的 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp` / `splithttp`。
 无论 ppanel 写 `xhttp` 还是 `splithttp`，heki 都会在运行时统一按 `splithttp` 启动，不会静默退回 `tcp`。
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 !> Trojan 走 TLS 时需要证书；如果 ppanel 下发的是 Reality，则不需要外部证书。
 
@@ -43,7 +43,7 @@ cert_mode=http
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

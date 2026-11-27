@@ -1,4 +1,4 @@
-# ppanel 对接 anytls
+# ppanel 对接 AnyTLS
 
 ## 第一步，在面板添加一个节点
 
@@ -31,7 +31,7 @@ cert_mode=self
 anytls_ech_server_keys=BASE64_ECH_KEYSET
 ```
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 !> AnyTLS 走 TLS 时需要证书；如果面板下发的是 Reality，则不需要外部证书。
 
@@ -127,7 +127,7 @@ anytls_invalid_access_forbidden_time=600
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

@@ -1,10 +1,9 @@
-# Xboard 对接 anytls
+# XBoard 对接 AnyTLS
 
-# 第一步，在面板添加一个节点
+## 第一步，在面板添加一个节点
 
-非常简单，教程省略。
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
 !> AnyTLS 走 TLS 时需要证书；若 XBoard 下发的是 `tls=2`（Reality），则不需要外部证书。
 
@@ -184,7 +183,7 @@ anytls_invalid_access_enable=true
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start

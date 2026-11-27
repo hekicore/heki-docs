@@ -44,7 +44,7 @@ Shadow-TLS 的密码规则取决于协议版本：
 
 使用 `v2ray-plugin` / `gost-plugin` 的 TLS 模式时，需要在 ppanel 节点中同时配置 SNI 和证书模式。Shadow-TLS 借用远端握手服务器，不需要给 heki 配置站点证书。
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 type=ppanel
@@ -56,7 +56,7 @@ node_id=1
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

@@ -2,7 +2,7 @@
 
 ## 支持情况
 
-> 若使用中转，需确保后端能够`正确获取到用户的真实 IP`，否则将无法进行限制，参考: [中转获取真实 IP](forward-get-real-ip.md)
+> 若使用中转，需确保后端能够`正确获取到用户的真实 IP`，否则将无法进行限制，参考: [中转获取真实 IP](other/forward-get-real-ip.md)
 
 | 限制项 | 支持协议 |
 |---|---|
@@ -59,7 +59,7 @@ systemctl enable --now redis
 
 > 若系统服务名为 `redis-server`，请将上面的 `redis` 改成 `redis-server`
 
-## 二、配置 heki
+## 二、配置 Heki
 
 | 配置名 | 默认值 | 说明 |
 |---|---|---|

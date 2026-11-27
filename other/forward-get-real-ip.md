@@ -38,7 +38,7 @@ Mieru TCP 支持 Proxy Protocol v1 / v2；Mieru UDP 只接收 Proxy Protocol v2 
 ## 专线转发注意事项
 如果你购买了流量转发服务或者专线服务器，那么有可能无法获取真实 IP，需要注意以下情况
 
-#### 1. 流量转发服务（无服务器）
+### 1. 流量转发服务（无服务器）
 由于`没有服务器控制权`，无法安装自己的转发软件，能否获取真实 IP 取决于商家是否支持`proxy protocol`转发
 
 #### 2. 专线服务器（一台服务器，海外端控制权）
@@ -52,7 +52,7 @@ Mieru TCP 支持 Proxy Protocol v1 / v2；Mieru UDP 只接收 Proxy Protocol v2 
 #### 4. 专线服务器（两台服务器）
 如果能拿到`两台机器`的控制权，可以自行设置 iptables 转发
 
-# 一、HAProxy 中转
+## 一、HAProxy 中转
 
 ## HAProxy 中转适合走 TCP 接入链路的入口
 
@@ -60,7 +60,7 @@ Mieru TCP 支持 Proxy Protocol v1 / v2；Mieru UDP 只接收 Proxy Protocol v2 
 >
 > `HAProxy` 不处理 UDP，因此本节只对应 TCP 部分。若要让 `SS` / `SSR` 的 UDP relay 或 `Mieru UDP` 获取真实源地址，需要前置转发端支持并发送 `UDP Proxy Protocol v2`
 
-## ① heki 配置
+## ① Heki 配置
 
 ```
 proxy_protocol=true
@@ -115,7 +115,7 @@ systemctl restart haproxy
 systemctl enable haproxy
 ```
 
-# 二、nginx 中转
+## 二、nginx 中转
 
 > nginx 反代如果只设置 `X-Real-IP` / `X-Forwarded-For`，当前只适合 `splithttp/xhttp` 这类由 HTTP listener 读取转发头的入口；普通内置 `ws` / `httpupgrade` 入口不会把这些 HTTP 头转换成连接真实 IP。
 

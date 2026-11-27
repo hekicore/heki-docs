@@ -1,4 +1,4 @@
-# ppanel 对接 v2ray / VMess
+# ppanel 对接 V2Ray / VMess
 
 > 使用 VMessAEAD 必看: [VMessAEAD 优化](other/vmess-aead.md)
 
@@ -30,7 +30,7 @@ systemctl restart ntp
 当前 heki 已确认兼容 ppanel 下发的 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp` / `splithttp`。
 无论 ppanel 写 `xhttp` 还是 `splithttp`，heki 都会在运行时统一按 `splithttp` 启动，不会静默退回 `tcp`。
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 type=ppanel
@@ -40,11 +40,11 @@ panel_key=your-secret-key
 node_id=1
 ```
 
-!> 若启用 tls 则必须要配置证书！！！
+!> 若启用 tls 则必须配置证书。
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

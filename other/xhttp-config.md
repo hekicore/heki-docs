@@ -48,9 +48,7 @@ Heki 仍需要该域名的有效服务端证书，可配置手动证书或自动
 
 `xmux.maxConcurrency`、`xmux.hMaxRequestTimes`、`xmux.hMaxReusableSecs` 支持 `16-32`、`600-900`、`1800-3000` 这类范围值。这些参数用于客户端 HTTP 连接复用，需由面板正确下发给支持的客户端；不能当作 Heki 服务端的连接数、请求数或限速开关。
 
-2026-10-31 最新重发的 1.2.9 修复了 HTTP/3 有活跃代理会话时停止卡住的问题，并回收连接、上传队列及 UDP 监听端口；packet-up、stream-up、stream-one 均有关闭回归测试。无需增加参数，正常运行时不会因此定时切断连接；主动停止节点时会结束该节点已有连接。
-
-已安装早期 1.2.9 的用户仍需重新更新安装包，Docker 用户需拉取镜像并重建容器，仅重启旧容器不会得到修复。
+正常运行时不会因这项机制定时切断连接。主动停止节点时，Heki 会结束该节点已有连接，并回收连接、上传队列及 UDP 监听端口；packet-up、stream-up、stream-one 均采用相同的关闭处理。
 
 ## h2Params 与 OPTIONS 上行
 
@@ -64,11 +62,11 @@ Heki 仍需要该域名的有效服务端证书，可配置手动证书或自动
 
 只对 TCP 上的 XHTTP（HTTP/1.1、HTTP/2）生效，HTTP/3 不使用。字段类型写错时节点启动报错，不会静默忽略。不清楚用途时不要添加。
 
-`uplinkHTTPMethod` 设为 `OPTIONS` 时，不带 `Access-Control-Request-Method` 的 OPTIONS 请求按上行数据处理；带这个请求头的才是浏览器的 CORS 预检，仍直接返回 200。此前所有 OPTIONS 都被当成预检，这种配置下上行不通。
+`uplinkHTTPMethod` 设为 `OPTIONS` 时，不带 `Access-Control-Request-Method` 的 OPTIONS 请求按上行数据处理；带这个请求头的才是浏览器的 CORS 预检，直接返回 200。
 
-## allowInsecure=true 升级后怎么处理
+## allowInsecure=true 怎么处理
 
-它原本表示“不验证对方证书”。Heki 1.2.9 使用的新版 Xray 不再接受 `downloadSettings.tlsSettings.allowInsecure=true`。只有使用这项下载端 TLS 配置的节点需要迁移，不是所有 Heki 节点都要重新申请证书。
+它表示“不验证对方证书”，但当前 Xray 不接受 `downloadSettings.tlsSettings.allowInsecure=true`。只有使用这项下载端 TLS 配置的节点需要迁移，不是所有 Heki 节点都要重新申请证书。
 
 ### 方法一：下载服务器使用可信证书
 

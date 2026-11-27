@@ -1,10 +1,14 @@
-# heki-v1 WebAPI
+# Heki-v1 WebAPI
 
 `heki-v1` 是 heki 对外公开的、版本化的控制面 WebAPI。
 
 它不要求第三方面板去复刻 XBoard / SSPanel / PPanel 的历史字段，而是提供一套稳定、清晰、适合长期维护的公共接口。只要你的后端按本文档实现接口，`type=heki-v1` 的 heki 节点就可以直接接入。
 
-> 文档入口： [WebAPI 文档](heki-v1-webapi.md) | [参考后端](heki-v1-example-server.md) | <a href="panel/heki-v1.openapi.yaml" target="_blank" rel="noopener">OpenAPI 规范</a>
+**文档入口**
+
+- [WebAPI 文档](heki-v1-webapi.md)
+- [参考后端](heki-v1-example-server.md)
+- [OpenAPI 规范](panel/heki-v1.openapi.yaml)
 
 ## 文档定位
 
@@ -763,7 +767,7 @@ curl -i \
 - 新协议或重大语义变化通过 `v2` 路径发布
 - 对外文档、OpenAPI 和真实返回字段保持同步
 
-### 10.2 heki 当前的兼容解析
+### 10.2 Heki 当前的兼容解析
 
 当前 heki 客户端在实现层还兼容一部分历史别名，用于降低接入成本，例如：
 

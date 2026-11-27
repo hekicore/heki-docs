@@ -1,4 +1,4 @@
-# ppanel 对接 hysteria
+# ppanel 对接 Hysteria2
 
 ## 第一步，在面板添加一个节点
 
@@ -6,7 +6,7 @@
 
 使用 `cert_mode=self` 时，Heki 会通过状态上报的 `X-Node-Certificate-SHA256` 请求头发送实际叶证书指纹，PPanel 保存为 `cert_pin_sha256`。更换证书后下次心跳会更新指纹，客户端需刷新订阅。
 
-2026-10-31 对 PPanel `9232f51b892e` 的真实联调发现：新安装自带的订阅模板尚未输出这个指纹，仅升级后端不足以让自签订阅可用。备份现有 Clash 模板后，在其 Hysteria2 分支的 `type: hysteria2` 下一行增加：
+如果当前 Clash 订阅模板没有输出这个指纹，自签证书节点将无法直接使用。备份现有 Clash 模板后，在其 Hysteria2 分支的 `type: hysteria2` 下一行增加：
 
 ```gotemplate
   {{- if ne (default "" $proxy.CertPinSHA256) "" }}
@@ -14,7 +14,7 @@
   {{- end }}
 ```
 
-这是叶证书 SHA-256，不是 `client-fingerprint`（浏览器 TLS 指纹），也不是公钥 SPKI hash。模板补齐后已用 Mihomo v1.19.25 加载面板生成的节点并连接成功，无需设置 `skip-cert-verify: true`。其他订阅格式需按各客户端字段单独适配；不能直接照搬此 YAML 字段。也可改用域名匹配的可信证书。
+这里使用的是叶证书 SHA-256，不是 `client-fingerprint`（浏览器 TLS 指纹），也不是公钥 SPKI hash。正确配置后无需设置 `skip-cert-verify: true`。其他订阅格式需按各客户端字段单独适配，不能直接照搬此 YAML 字段；也可改用域名匹配的可信证书。
 
 可选配置项：
 - `obfs_password`：混淆密码（启用后使用 salamander 混淆）
@@ -30,9 +30,9 @@
 
 > Hysteria2 基于 QUIC/UDP 协议，中转服务器需要支持 UDP 转发
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
-!> hysteria 必须要配置证书！！！
+!> hysteria 必须配置证书。
 
 ```ini
 type=ppanel
@@ -56,7 +56,7 @@ cert_mode=http
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

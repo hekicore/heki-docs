@@ -1,6 +1,6 @@
 # SSPanel-UIM 对接 TUIC V5
 
-# 第一步，在面板添加一个节点
+## 第一步，在面板添加一个节点
 
 在 SSPanel-UIM 面板中添加 TUIC 节点（sort=2），在 `custom_config` 中配置端口、拥塞控制等参数。
 
@@ -14,7 +14,7 @@ custom_config 示例：
 }
 ```
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
 !> TUIC V5 基于 QUIC/UDP 协议，必须配置 TLS 证书！
 
@@ -51,7 +51,7 @@ node_id=1
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start

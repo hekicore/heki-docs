@@ -1,6 +1,6 @@
-# SSPanel 对接 trojan
+# SSPanel 对接 Trojan
 
-# 第一步，配置面板节点地址
+## 第一步，配置面板节点地址
 
 ## 节点地址格式：
 
@@ -30,13 +30,13 @@ gz.aaa.com;port=443#12345|host=hk.aaa.com
 中转机地址;port=落地机监听端口#中转机监听端口|host=证书域名
 ```
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
-!> 若启用 tls 则必须要配置证书！！！
+!> 若启用 tls 则必须配置证书。
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start

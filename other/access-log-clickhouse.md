@@ -31,11 +31,9 @@ access_log_clickhouse_password=
 | `access_log_clickhouse_flush_interval` | `5` | 未满批次时的刷新间隔，秒 |
 | `access_log_clickhouse_request_timeout` | `5` | 单次 HTTP 请求超时，秒 |
 | `access_log_clickhouse_auto_create` | `true` | 是否自动创建表 |
-| `access_log_clickhouse_gzip` | `false` | gzip 压缩 INSERT 请求体，减少日志上传流量（v1.2.9 同版本重发新增） |
+| `access_log_clickhouse_gzip` | `false` | gzip 压缩 INSERT 请求体，减少日志上传流量 |
 
 ## gzip 上传压缩
-
-> 此开关随 2026-10-31 的 v1.2.9 同版本重发提供；旧版 1.2.9 用户也需重新下载安装包或拉取镜像并重建容器。
 
 节点与 ClickHouse 之间跨机器或跨地区传输日志时，可在主配置 `heki.conf` 中开启：
 

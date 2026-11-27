@@ -1,14 +1,13 @@
-# Xboard 对接 trojan
+# XBoard 对接 Trojan
 
 ## 第一步，在面板添加一个节点
 
-非常简单，教程省略。
 
 当前 heki 已确认支持 XBoard 下发的 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp`。
 面板下发的 `xhttp` 会在运行时规范化为 `splithttp`，按内置 Xray-core listener 启动，不会静默退回 `tcp`。
 XBoard 的 Trojan `tls=2`（Reality）也已支持；若走 Reality，则不需要外部证书。
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 type=xboard
@@ -75,7 +74,7 @@ node_id=1
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

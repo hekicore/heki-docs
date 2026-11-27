@@ -1,4 +1,4 @@
-# Xboard 对接 v2ray / VMess
+# XBoard 对接 V2Ray / VMess
 
 > 使用 VMessAEAD 必看: [VMessAEAD 优化](other/vmess-aead.md)
 
@@ -25,13 +25,12 @@ systemctl restart ntp
 
 ## 第一步，在面板添加一个节点
 
-非常简单，教程省略。
 
 当前 heki 已确认支持 XBoard 下发的 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp`。
 `ws` 支持客户端通过 `Sec-WebSocket-Protocol` 携带 Base64 early data，前置数据会在后续 WebSocket 帧之前交给 VMess；此入口的单个合法 Base64 token 按 early data 处理。
 面板下发的 `xhttp` 会在运行时规范化为 `splithttp`，按内置 Xray-core listener 启动，不会静默退回 `tcp`。
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 type=xboard
@@ -116,11 +115,11 @@ proxies:
 - 运行中在面板上修改 `routes` / `custom_outbounds` / `custom_routes` 会在下一个同步周期自动生效，无需重启；新配置无效时保留当前路由并在日志中说明原因
 - 对 XBoard V2，如果 `config` 响应缺少 `protocol`，heki 会先按 payload 特征推断；无法安全判断时直接报错，避免误判协议
 
-!> 若启用 tls 则必须要配置证书！！！
+!> 若启用 tls 则必须配置证书。
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

@@ -120,7 +120,7 @@ force_vmess_aead=true
 - 面板 `routes` / `custom_outbounds` / `custom_routes` JSON 现在会转换为 heki 本地内存路由；匹配时优先按面板路由执行，未命中再继续匹配本地 `routes_file` / `routes_url`（未显式配置 `routes_file` 时默认回退到同目录 `routes.toml`）。
 - 若面板路由里使用了 heki 当前无法承载的字段或出站类型，启动时会明确报出具体规则位置和不支持字段。
 - 运行中在面板上修改 `routes` / `custom_outbounds` / `custom_routes` 会在下一个同步周期自动生效，无需重启；新配置无效时保留当前路由并在日志中说明原因。
-- `xhttp` / `splithttp` 入站运行时现已支持 `vmess` / `vless` / `trojan` / `anytls`。面板下发 `xhttp` 时，heki 会在运行时规范化为 `splithttp`，不会静默回退到 `tcp`。
+- `xhttp` / `splithttp` 入站支持 `vmess` / `vless` / `trojan` / `anytls`。面板下发 `xhttp` 时，heki 会在运行时规范化为 `splithttp`，不会静默回退到 `tcp`。
 - XBoard 官方默认模板的 VMess / VLESS / Trojan XHTTP 已适配；官方 AnyTLS server config 尚缺 network/networkSettings，需使用能下发这些字段的分支或按本地支持范围配置，并另行保证客户端订阅正确。
 - 对 XBoard 常见的 `xhttp` 模版，`xhttp_extra` 里的范围值和开关值支持常见字符串写法，例如 `"16-32"`、`"8"`、`"true"`；服务端不会使用的附加字段，以及默认模版里不完整的 `downloadSettings` 占位对象，都会自动忽略，不会因此导致节点启动失败。
 - `splithttp` 当前不能与 `proxy_protocol` 或 `mptcp` 同开；如果前面有 nginx / caddy 做 TLS 卸载，才考虑 `force_close_ssl=true`。

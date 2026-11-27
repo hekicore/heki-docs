@@ -1,4 +1,4 @@
-# V2board / xiaov2board 对接 trojan
+# V2Board / XiaoV2Board 对接 Trojan
 
 !> 原版 V2Board 的实际兼容性取决于面板分支返回的 API 字段。若你的面板未返回 Trojan 所需字段，建议优先使用 XBoard / PPanel。
 !> 已适配的 `xiaov2board` `v2node` 分支可下发 `listen_ip`、`base_config` 等字段；Trojan 传输层 heki 当前接受 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp`。
@@ -6,12 +6,11 @@
 
 ## 第一步，在面板添加一个节点
 
-非常简单，教程省略。
 
 当前 heki 已确认支持 `tcp` / `ws` / `httpupgrade` / `h2` / `grpc` / `xhttp`。
 对 `xiaov2board` `v2node` 下发的 `xhttp`，heki 会在运行时规范化为 `splithttp`，不会静默退回 `tcp`。
 
-## 第二步，配置 heki
+## 第二步，配置 Heki
 
 ```ini
 # xiaov2board 用这个
@@ -39,7 +38,7 @@ node_id=1
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-## 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```bash
 heki start

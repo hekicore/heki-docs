@@ -12,7 +12,7 @@ bash <(curl -Ls https://raw.githubusercontent.com/hekicore/heki/master/install.s
 bash <(curl -Ls https://raw.githubusercontent.com/hekicore/heki/master/install.sh) --beta
 ```
 
-### heki 管理命令
+### Heki 管理命令
 不带参数运行 `heki` 会打开交互式管理菜单；也可以运行 `heki help` 查看命令帮助。
 
 #### 基础管理
@@ -54,7 +54,7 @@ bash <(curl -Ls https://raw.githubusercontent.com/hekicore/heki/master/install.s
 - `heki update x.x.x / beta`：更新到指定版本、最新测试版
 - `heki install / uninstall`：重新安装、卸载
 
-### ① 使用 heki 命令自动配置
+### ① 使用 Heki 命令自动配置
 输出当前配置文件内容
 ```
 heki config
@@ -75,7 +75,7 @@ heki config type=ppanel server_type=vless node_id=1 panel_url=https://xxx.com/ p
 
 > Heki 可对接的 PPanel 协议：v2ray(vmess)、vless、ss、ssr、trojan、hysteria、tuic、anytls、naive、mieru。面板新增的 Snell、Nowhere 暂未实现。
 
-### heki-v1 公共 WebAPI 对接示例
+### Heki-v1 公共 WebAPI 对接示例
 
 `heki-v1` 是 heki 对外公开的版本化 WebAPI，适合别人按文档自定义后端来适配 heki。
 
@@ -178,7 +178,7 @@ pprof_addr=off
 
 ---
 
-# 2. 配置优先级
+## 2. 配置优先级
 
 配置先从 `heki.conf` 读取，再应用同名环境变量；每个节点随后读取支持的 `[USER]` 覆盖项，最后接入面板字段。**最终优先级与字段有关**，不能把“面板总是覆盖本地”套用到所有参数。
 
@@ -194,7 +194,7 @@ pprof_addr=off
 
 完整操作示例见 [复杂配置实例](heki/config-examples.md)。
 
-## 2.1 主配置文件 heki.conf
+## 2.1 主配置文件 Heki.conf
 
 路径：`/etc/heki/heki.conf`
 
@@ -225,7 +225,7 @@ pprof_addr=off
 | 参数值后写 ` # 注释` | 两种文件都不会把它自动当注释剥离；请把注释写在单独一行 |
 | 参数值加一对外层引号 | 主配置会去掉成对的单/双引号；节点区保留引号作为值的一部分，并提示检查 |
 
-为了兼容旧配置，本次没有统一改变空值或引号的解释。布尔参数推荐统一使用 `true` / `false`。主配置和节点 `[USER]` 区都支持旧的 `yes/no`、`1/0`，未识别的非空布尔值仍按旧行为解释为 `false` 并告警。为兼容旧版本，节点 `[USER]` 区的 `proxy_protocol`、`udp_proxy_protocol`、`force_proxy_protocol`、`force_close_ssl` 只有小写 `true` 才开启，写成 `1`/`yes`/`TRUE` 仍为关闭并告警；`force_vmess_md5` / `force_vmess_aead` 写错则该节点启动失败。主配置中无法解析的普通整数仍回退到原默认值并告警；本来就严格校验的字段仍会报错。不要把“进程启动了”当成“每个填写的参数都正确”。
+空值和引号沿用现有兼容规则。布尔参数推荐统一使用 `true` / `false`。主配置和节点 `[USER]` 区都支持旧的 `yes/no`、`1/0`，未识别的非空布尔值仍按旧行为解释为 `false` 并告警。为兼容旧版本，节点 `[USER]` 区的 `proxy_protocol`、`udp_proxy_protocol`、`force_proxy_protocol`、`force_close_ssl` 只有小写 `true` 才开启，写成 `1`/`yes`/`TRUE` 仍为关闭并告警；`force_vmess_md5` / `force_vmess_aead` 写错则该节点启动失败。主配置中无法解析的普通整数仍回退到原默认值并告警；本来就严格校验的字段仍会报错。不要把“进程启动了”当成“每个填写的参数都正确”。
 
 
 ## 2.2 节点独立配置
@@ -288,8 +288,8 @@ pprof_addr=off
 | `access_log_clickhouse_flush_interval` | `5` | 未满批次时的刷新间隔，秒 |
 | `access_log_clickhouse_request_timeout` | `5` | 单次建表/写入请求超时，秒 |
 | `access_log_clickhouse_auto_create` | `true` | 自动执行 `CREATE TABLE IF NOT EXISTS`；关闭后账号只需 INSERT 权限 |
-| `access_log_clickhouse_gzip` | `false` | gzip 压缩该节点的日志上传请求体；后台批次压缩，详见 [ClickHouse 访问日志](other/access-log-clickhouse.md)（v1.2.9 同版本重发新增） |
-| `hysteria_masquerade` | 空 | Hy2 HTTP/3 网站伪装，单行 JSON；节点整体覆盖全局值，`{}` 关闭，见 [Masquerade](hysteria/masquerade.md)（v1.2.9 再次重发新增） |
+| `access_log_clickhouse_gzip` | `false` | gzip 压缩该节点的日志上传请求体；后台批次压缩，详见 [ClickHouse 访问日志](other/access-log-clickhouse.md) |
+| `hysteria_masquerade` | 空 | Hy2 HTTP/3 网站伪装，单行 JSON；节点整体覆盖全局值，`{}` 关闭，见 [Masquerade](hysteria/masquerade.md) |
 | `tuic_initial_stream_window` | `2` | TUIC 单 stream 初始接收窗口，单位 MB，仅 `server_type=tuic` 生效 |
 | `tuic_max_stream_window` | `6` | TUIC 单 stream 最大接收窗口，单位 MB，仅 `server_type=tuic` 生效 |
 | `tuic_initial_conn_window` | `3` | TUIC 单连接初始接收窗口，单位 MB，仅 `server_type=tuic` 生效 |
@@ -471,7 +471,7 @@ heki 支持在同一实例中运行不同协议类型的节点。节点实际协
 
 ---
 
-# 3. 配置参数详解
+## 3. 配置参数详解
 
 ## 3.1 基础配置（必填）
 
@@ -544,7 +544,7 @@ heki 支持在同一实例中运行不同协议类型的节点。节点实际协
 >
 > `dns_rules_file` 的实际优先级是：CLI `-d` > `heki.conf` 中的 `dns_rules_file` > `heki.conf` 同目录默认 `dns.yml`。
 
-远程统一管理示例（2026-10-31 的 `v1.2.9` 同版本重发新增，旧版 1.2.9 也需重新下载安装包或拉取镜像并重建容器）：
+远程统一管理示例：
 
 ```ini
 dns_rules_url=https://rules.example.com/dns.yml
@@ -578,13 +578,13 @@ dns_rules_update_interval=60
 
 ### 3.4.1 xhttp / SplitHTTP
 
-`xhttp` 现已支持，运行时会统一规范化为 `splithttp`。面板下发和本地直配都可以继续写 `xhttp`，heki 启动时会自动转成内置的 `splithttp` listener。
+`xhttp` 运行时会统一规范化为 `splithttp`。面板下发和本地直配都可以写 `xhttp`，heki 启动时会自动转成内置的 `splithttp` listener。
 
 - 当前支持协议：`v2ray(vmess)`、`vless`、`trojan`、`anytls`
 - 当前已支持 `TLS` / `Reality` 组合；是否实际生效仍取决于对应协议和面板下发的安全类型
 - 本地没有单独的 `*_xhttp_path` / `*_xhttp_host` 配置键；`xhttp` 继续复用现有的 `*_h2_path` / `*_h2_host`
 - 面板模式下，直接让面板下发 `xhttp` 即可；本地直配或调试环境下，可手工写 `*_transport=xhttp` 或 `*_transport=splithttp`
-- `AnyTLS + WebSocket/xhttp` 已补齐复用 stream 的 `SYNACK` 确认，页面停留后刷新 WS/探针不应再因为旧 session 复用超时而连续掉线重连
+- `AnyTLS + WebSocket/xhttp` 复用 stream 时会发送 `SYNACK` 确认，减少页面停留后刷新 WS/探针时因会话复用超时导致的连续掉线重连
 
 本地直配示例：
 
@@ -803,7 +803,7 @@ Vision 支持通过 Mux/XUDP 转发 UDP；“底层 TCP”不等于“只能代�
 | `hysteria_ech_server_keys` | 空 | 服务端 ECH keyset，Base64 编码，需包含私钥；支持环境变量及节点 `[USER]`，本地显式值优先；空值可使用面板 `ech_server_keys` / `ech_key`，无效内容阻止启动 |
 | `hysteria_allow_insecure` | `false` | 客户端兼容字段，服务端忽略；自签证书应在客户端配置信任或证书 pin，见 Hy2 文档 |
 | `hysteria_disable_udp`    | `false` | 是否禁用 UDP 转发                                            |
-| `hysteria_masquerade` | 空 | HTTP/3 网站伪装：`proxy/file/string`，支持环境变量及节点 `[USER]`；配置实例见 [Masquerade](hysteria/masquerade.md)（v1.2.9 再次重发新增） |
+| `hysteria_masquerade` | 空 | HTTP/3 网站伪装：`proxy/file/string`，支持环境变量及节点 `[USER]`；配置实例见 [Masquerade](hysteria/masquerade.md) |
 
 > `hysteria_up_mbps / hysteria_down_mbps` 是 Hysteria2 自身的带宽参数；另外通用的 `user_speed_limit`、`node_speed_limit` 也会对 Hysteria2 生效。
 
@@ -1127,7 +1127,7 @@ cert_mode=self
 | `access_log_clickhouse_flush_interval` | `5` | 批量刷新间隔，秒 |
 | `access_log_clickhouse_request_timeout` | `5` | ClickHouse HTTP 请求超时，秒 |
 | `access_log_clickhouse_auto_create` | `true` | 是否自动创建访问日志表 |
-| `access_log_clickhouse_gzip` | `false` | gzip 压缩日志上传请求体，可在节点 `[USER]` 区覆盖；详见 [ClickHouse 访问日志](other/access-log-clickhouse.md)（v1.2.9 同版本重发新增） |
+| `access_log_clickhouse_gzip` | `false` | gzip 压缩日志上传请求体，可在节点 `[USER]` 区覆盖；详见 [ClickHouse 访问日志](other/access-log-clickhouse.md) |
 | `auto_out_ip` | `false` | 源进源出；按入口本地 IP 绑定出口，多 IP 服务器建议配合 `listen=all` 或明确 IP 列表 |
 | `domain_sniff` | `tls,http,quic` | 域名探测协议；仅当客户端目标本身是 IP 时才尝试从首包探测，空=不探测 |
 | `sniff_redirect` | `false` | 探测到域名后重新解析 IP，优先级为面板运行时 DNS > 当前 DNS 规则源（本地文件或已加载的远程规则）> `default_dns` > 系统 DNS |
@@ -1162,7 +1162,7 @@ journalctl -u 'heki-update-*' --no-pager -n 100
 
 ---
 
-# 4. 内存优化
+## 4. 内存优化
 
 heki 针对代理服务的内存使用做了多层优化，默认配置即可显著降低内存占用，无需额外操作。
 

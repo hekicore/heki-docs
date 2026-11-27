@@ -1,4 +1,4 @@
-# V2board 对接 hysteria
+# V2Board 对接 Hysteria2
 
 !> 原版 V2Board 的实际兼容性取决于面板分支返回的 API 字段。若你的面板未返回 hysteria 所需字段，建议优先使用 XBoard / PPanel。
 
@@ -6,13 +6,13 @@ XiaoV2Board 使用 `type=xiaov2board`。支持其 `tls_settings.cert_mode=remote
 
 无需再生成另一张本地自签证书。若手动指定本地证书，仍以手动配置优先，但必须保证订阅指纹与这张实际证书一致；否则客户端会拒绝连接。
 
-# 第一步，在面板添加一个节点
+## 第一步，在面板添加一个节点
 
 XiaoV2Board 添加 Hysteria2 节点后，在面板配置远程证书模式，确保节点 API 返回 `tls_settings.cert_mode=remote`、`tls_cert`、`tls_key`、`server_name` 及证书 pin。具体输入框名称按面板分支为准；不要把这些面板 JSON 字段直接粘贴进 `heki.conf`。
 
-# 第二步，配置 heki
+## 第二步，配置 Heki
 
-!> hysteria 必须要配置证书！！！
+!> hysteria 必须配置证书。
 
 XiaoV2Board 已下发 remote 证书时，后端只需要正常面板对接配置，不要再指定另一张本地证书：
 
@@ -53,7 +53,7 @@ socks5:
 
 参考: [heki 详细配置项](heki/heki-config.md)
 
-# 第三步，启动 heki
+## 第三步，启动 Heki
 
 ```
 heki start
